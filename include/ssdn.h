@@ -34,11 +34,11 @@ void constrain_gpu(int N, float MIN, float MAX, float *X, int INCX);
 // blas.cpp
 void fill_cpu(int N, float ALPHA, float *X, int INCX);
 void axpy_cpu(int N, float ALPHA, float *X, int INCX, float *Y, int INCY);
-void add_cpu(int N, float ALPHA, float *X, int INCX);
-void scale_cpu(int N, float ALPHA, float *X, int INCX);
 void mul_cpu(int N, float *X, int INCX, float *Y, int INCY);
 void copy_cpu(int N, float *X, int INCX, float *Y, int INCY);
-void pow_cpu(int N, float ALPHA, float *X, int INCX, float *Y, int INCY);
-void constrain_cpu(int N, float MIN, float MAX, float *X, int INCX);
 
+void add_cpu(int N, float ALPHA, float *X, int INCX=1, float *Y=0, int INCY=1);
+void scale_cpu(int N, float ALPHA, float *X, int INCX=1, float *Y=0, int INCY=1);
+void pow_cpu(int N, float ALPHA, float *X, int INCX=1, float *Y=0, int INCY=1);
+void constrain_cpu(int N, float MIN, float MAX, float *X, int INCX=1, float *Y=0, int INCY=1);
 #endif

@@ -19,18 +19,6 @@ void axpy_cpu(int N, float ALPHA, float *X, int INCX, float *Y, int INCY) {
 	}
 }
 
-void add_cpu(int N, float ALPHA, float *X, int INCX) {
-	for (int i = 0; i < N; ++i) {
-		X[i*INCX] += ALPHA;
-	}
-}
-
-void scale_cpu(int N, float ALPHA, float *X, int INCX) {
-	for (int i = 0; i < N; ++i) {
-		X[i*INCX] *= ALPHA;
-	}
-}
-
 void mul_cpu(int N, float *X, int INCX, float *Y, int INCY) {
 	for (int i = 0; i < N; ++i) {
 		Y[i*INCY] *= X[i*INCX];
@@ -43,13 +31,41 @@ void copy_cpu(int N, float *X, int INCX, float *Y, int INCY) {
 	}
 }
 
+void add_cpu(int N, float ALPHA, float *X, int INCX, float *Y, int INCY) {
+	if (Y == 0) {
+		Y = X;
+		INCY = INCX;
+	}
+	for (int i = 0; i < N; ++i) {
+		Y[i*INCY] = X[i*INCX] + ALPHA;
+	}
+}
+
+void scale_cpu(int N, float ALPHA, float *X, int INCX, float *Y, int INCY) {
+	if (Y == 0) {
+		Y = X;
+		INCY = INCX;
+	}
+	for (int i = 0; i < N; ++i) {
+		Y[i*INCY] = X[i*INCX] * ALPHA;
+	}
+}
+
 void pow_cpu(int N, float ALPHA, float *X, int INCX, float *Y, int INCY) {
+	if (Y == 0) {
+		Y = X;
+		INCY = INCX;
+	}
 	for (int i = 0; i < N; ++i) {
 		Y[i*INCY] = pow(X[i*INCX], ALPHA);
 	}
 }
 
-void constrain_cpu(int N, float MIN, float MAX, float *X, int INCX) {
+void constrain_cpu(int N, float MIN, float MAX, float *X, int INCX, float *Y, int INCY) {
+	if (Y == 0) {
+		Y = X;
+		INCY = INCX;
+	}
 	for (int i = 0; i < N; ++i) {
 		Y[i*INCY] = fminf(MAX, fmaxf(MIN, X[i*INCX]));
 	}
