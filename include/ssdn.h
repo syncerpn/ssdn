@@ -4,7 +4,6 @@ extern int gpu_index;
 #include "cuda_runtime.h"
 #include "curand.h"
 #include "cublas_v2.h"
-
 #include "cudnn.h"
 
 void cuda_set_device(int n);

@@ -1,6 +1,7 @@
 int gpu_index = 0;
 
 #include "_cuda.h"
+#include "cuda.h"
 #include <assert.h>
 #include <stdlib.h>
 #include <time.h>
