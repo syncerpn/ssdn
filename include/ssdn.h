@@ -1,5 +1,6 @@
 #define BLOCK 512
 extern int gpu_index;
+extern unsigned int seed;
 
 #include <stdlib.h>
 #include <stdio.h>

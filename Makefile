@@ -15,7 +15,7 @@ LDFLAGS= -lm -pthread -L/usr/local/lib -lstdc++ -L/usr/local/cuda/lib64 -lcuda -
 COMMON= -Iinclude/ -Isrc/ -DGPU -I/usr/local/cuda/include/ -DCUDNN
 CFLAGS=-Wall -Wno-unused-result -Wno-unknown-pragmas -Wfatal-errors -fPIC -fopenmp -Ofast -DOPENCV -DGPU -DCUDNN
 
-OBJ=_cuda.o
+OBJ=_cuda.o _utils.o
 
 EXECOBJA=ssdn.o
 
