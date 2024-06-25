@@ -1,6 +1,6 @@
 ARCH= -gencode arch=compute_100,code=sm_100
 
-VPATH=./src/:./examples
+VPATH=./src/
 SLIB=lissdn.so
 ALIB=lissdn.a
 EXEC=ssdn
@@ -13,7 +13,7 @@ AR=ar
 ARFLAGS=rcs
 LDFLAGS= -lm -pthread -L/usr/local/lib -lstdc++ -L/usr/local/cuda/lib64 -lcuda -lcudart -lcublas -lcurand -lcudnn
 COMMON= -Iinclude/ -Isrc/ -DGPU -I/usr/local/cuda/include/ -DCUDNN
-CFLAGS=-Wall -Wno-unused-result -Wno-unknown-pragmas -Wfatal-errors -fPIC -fopenmp -Ofast -DOPENCV -DGPU -DCUDNN
+CFLAGS=-Wall -Wno-unused-result -Wno-unknown-pragmas -Wfatal-errors -fPIC -fopenmp -Ofast -DGPU -DCUDNN
 
 OBJ=_cuda.o _utils.o
 

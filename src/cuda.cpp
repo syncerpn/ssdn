@@ -1,7 +1,7 @@
 int gpu_index = 0;
 
-#include "_cuda.h"
-#include "_utils.h"
+#include "cuda.h"
+#include "utils.h"
 #include "cuda.h"
 #include <assert.h>
 #include <stdlib.h>
