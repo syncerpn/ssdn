@@ -74,22 +74,6 @@ cublasHandle_t blas_handle() {
     return handle[i];
 }
 
-template <typename T>
-T *cuda_make_array(T *x, size_t n) {
-    T *x_gpu;
-    size_t size = sizeof(T) * n;
-    cudaError_t status = cudaMalloc((void **)&x_gpu, size);
-    check_error(status);
-    if (x) {
-        status = cudaMemcpy(x_gpu, x, size, cudaMemcpyHostToDevice);
-        check_error(status);
-    } else {
-        fill_gpu(n, 0, x_gpu, 1);
-    }
-    if (!x_gpu) error("Cuda malloc failed\n");
-    return x_gpu;
-}
-
 void cuda_random(float *x_gpu, size_t n) {
     static curandGenerator_t gen[16];
     static int init[16] = {0};
@@ -101,26 +85,6 @@ void cuda_random(float *x_gpu, size_t n) {
     }
     curandGenerateUniform(gen[i], x_gpu, n);
     check_error(cudaPeekAtLastError());
-}
-
-template <typename T>
-void cuda_free(T *x_gpu) {
-    cudaError_t status = cudaFree(x_gpu);
-    check_error(status);
-}
-
-template <typename T>
-void cuda_push_array(T *x_gpu, T *x, size_t n) {
-    size_t size = sizeof(T) * n;
-    cudaError_t status = cudaMemcpy(x_gpu, x, size, cudaMemcpyHostToDevice);
-    check_error(status);
-}
-
-template <typename T>
-void cuda_pull_array(T *x_gpu, T *x, size_t n) {
-    size_t size = sizeof(T) * n;
-    cudaError_t status = cudaMemcpy(x, x_gpu, size, cudaMemcpyDeviceToHost);
-    check_error(status);
 }
 
 int get_number_of_blocks(int array_size, int block_size) {
