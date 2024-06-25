@@ -6,7 +6,6 @@ ALIB=lissdn.a
 EXEC=ssdn
 OBJDIR=./obj/
 
-CC=gcc
 CPP=g++
 NVCC=nvcc
 AR=ar
