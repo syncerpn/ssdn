@@ -26,7 +26,7 @@ DEPS = $(wildcard src/*.h) Makefile include/ssdn.h
 all: obj $(SLIB) $(ALIB) $(EXEC)
 
 $(EXEC): $(EXECOBJ) $(ALIB)
-	$(CC) $(COMMON) $(CFLAGS) $^ -o $@ $(LDFLAGS) $(ALIB)
+	$(CPP) $(COMMON) $(CFLAGS) $^ -o $@ $(LDFLAGS) $(ALIB)
 
 $(ALIB): $(OBJS)
 	$(AR) $(ARFLAGS) $@ $^
