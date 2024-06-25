@@ -3,6 +3,10 @@
 #include "cublas_v2.h"
 #include "curand_kernel.h"
 
+#include "blas.h"
+#include "cuda.h"
+#include "utils.h"
+
 #include <assert.h>
 
 __global__ void fill_kernel(int N, float ALPHA, float *X, int INCX)
