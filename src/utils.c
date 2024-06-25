@@ -5,7 +5,7 @@
 #include <unistd.h>
 #include <time.h>
 #include <sys/time.h>
-#include "_utils.h"
+#include "utils.h"
 
 unsigned int seed = 0;
 

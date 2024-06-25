@@ -1,5 +1,5 @@
-#ifndef _CUDA_H
-#define _CUDA_H
+#ifndef CUDA_H
+#define CUDA_H
 
 #include "ssdn.h"
 #define WARP_SIZE 32
