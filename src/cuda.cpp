@@ -110,3 +110,35 @@ cudaStream_t get_cuda_stream() {
     }
     return streamsArray[i];
 }
+
+float *cuda_make_array(float *x, size_t n) {
+    float *x_gpu;
+    size_t size = sizeof(float) * n;
+    cudaError_t status = cudaMalloc((void **)&x_gpu, size);
+    check_error(status);
+    if (x) {
+        status = cudaMemcpy(x_gpu, x, size, cudaMemcpyHostToDevice);
+        check_error(status);
+    } else {
+        fill_gpu(n, 0, x_gpu, 1);
+    }
+    if (!x_gpu) error("Cuda malloc failed\n");
+    return x_gpu;
+}
+
+void cuda_free(float *x_gpu) {
+    cudaError_t status = cudaFree(x_gpu);
+    check_error(status);
+}
+
+void cuda_push_array(float *x_gpu, float *x, size_t n) {
+    size_t size = sizeof(float) * n;
+    cudaError_t status = cudaMemcpy(x_gpu, x, size, cudaMemcpyHostToDevice);
+    check_error(status);
+}
+
+void cuda_pull_array(float *x_gpu, float *x, size_t n) {
+    size_t size = sizeof(float) * n;
+    cudaError_t status = cudaMemcpy(x, x_gpu, size, cudaMemcpyDeviceToHost);
+    check_error(status);
+}

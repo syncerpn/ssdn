@@ -14,5 +14,9 @@ extern unsigned int seed;
 #include "cudnn.h"
 
 void cuda_set_device(int n);
+float *cuda_make_array(float *x, size_t n);
+void cuda_free(float *x_gpu);
+void cuda_push_array(float *x_gpu, float *x, size_t n);
+void cuda_pull_array(float *x_gpu, float *x, size_t n);
 
 #endif
