@@ -22,14 +22,16 @@ void cuda_pull_array(float *x_gpu, float *x, size_t n);
 
 // blas_kernels.cu
 void fill_gpu(int N, float ALPHA, float *X, int INCX);
-void add_bias_gpu(float *output, float *biases, int batch, int n, int size);
 void axpy_gpu(int N, float ALPHA, float *X, int INCX, float *Y, int INCY);
-void add_gpu(int N, float ALPHA, float *X, int INCX);
-void scale_gpu(int N, float ALPHA, float *X, int INCX);
 void mul_gpu(int N, float *X, int INCX, float *Y, int INCY);
 void copy_gpu(int N, float *X, int INCX, float *Y, int INCY);
-void pow_gpu(int N, float ALPHA, float *X, int INCX, float *Y, int INCY);
-void constrain_gpu(int N, float MIN, float MAX, float *X, int INCX);
+
+void add_gpu(int N, float ALPHA, float *X, int INCX=1, float *Y=0, int INCY=1);
+void scale_gpu(int N, float ALPHA, float *X, int INCX=1, float *Y=0, int INCY=1);
+void pow_gpu(int N, float ALPHA, float *X, int INCX=1, float *Y=0, int INCY=1);
+void constrain_gpu(int N, float MIN, float MAX, float *X, int INCX=1, float *Y=0, int INCY=1);
+
+void add_bias_gpu(float *output, float *biases, int batch, int n, int size);
 
 // blas.cpp
 void fill_cpu(int N, float ALPHA, float *X, int INCX);
