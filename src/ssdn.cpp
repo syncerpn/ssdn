@@ -46,7 +46,7 @@ float quantize(float x, float step, int nbit, bool sign) {
 }
 
 float forward(float* x, float* y, int** layers, float* weights, float* biases, float* wq_steps, float* xq_steps) {
-
+	return 0;
 }
 
 void run_sim_fast_approx_ma() {
