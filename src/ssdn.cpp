@@ -64,7 +64,8 @@ void run_sim_fast_approx_ma() {
 	float wq_steps[8] = {1.0/(1<<10), 1.0/(1<<8), 1.0/(1<<10), 1.0/(1<<10), 1.0/(1<<10), 1.0/(1<<10), 1.0/(1<<8), 0.0};
 	float xq_steps[8] = {1.0/(1<< 8), 1.0/(1<<8), 1.0/(1<< 8), 1.0/(1<< 8), 1.0/(1<< 8), 1.0/(1<< 8), 1.0/(1<<8), 0.0};
 
-	// float 
+	float** weights = new float*[8];
+	float** biases = new float*[8];
 
 	for (int i = 0; i < 1; ++i) {
 		std::string data_file_name = "./data/layer_" + std::to_string(i);
@@ -76,14 +77,36 @@ void run_sim_fast_approx_ma() {
 		int s = layers[i][3];
 		int p = layers[i][4];
 
-		int buffer_size = c*n*k*k+n;
+		int weight_size = c * n * k * k;
+		weights[i] = new float[weight_size];
+
+		int bias_size = n;
+		biases[i] = new float[bias_size];
+
+		int buffer_size = weight_size + bias_size;
 		float* buffer = new float[buffer_size];
 		fread(buffer, sizeof(float), buffer_size, f);
+
+		copy_cpu(bias_size, buffer, 1, biases[i], 1);
+		copy_cpu(weight_size, buffer + bias_size, 1, weights[i], 1);
+		
 		for (int j = 0; j < 10; ++j) {
-			std::cout << buffer[j] << std::endl;
+			std::cout << biases[j] << std::endl;
+		}
+		std::cout << std::endl;
+		for (int j = 0; j < 10; ++j) {
+			std::cout << weights[j] << std::endl;
 		}
 		delete buffer;
 	}
+
+
+	for (int i = 0; i < 8; ++i) {
+		delete[] weights[i];
+		delete[] biases[i];
+	}
+	delete[] weights;
+	delete[] biases;
 }
 
 int main() {
