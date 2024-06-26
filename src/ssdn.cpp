@@ -41,8 +41,8 @@ void run_sim_fast_approx_ma() {
 
 int main() {
 	int k, p;
-	for (int i = 0; i <= 512; ++i) {
-		for (int j = i; j <= 512; ++j) {
+	for (int i = 0; i <= 128; ++i) {
+		for (int j = i; j <= 128; ++j) {
 			std::cout << i << " x " << j << " = " << approximate(i, j) << std::endl;
 		}
 	}
