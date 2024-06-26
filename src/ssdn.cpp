@@ -91,11 +91,11 @@ void run_sim_fast_approx_ma() {
 		copy_cpu(weight_size, buffer + bias_size, 1, weights[i], 1);
 		
 		for (int j = 0; j < 10; ++j) {
-			std::cout << biases[j] << std::endl;
+			std::cout << biases[i][j] << std::endl;
 		}
 		std::cout << std::endl;
 		for (int j = 0; j < 10; ++j) {
-			std::cout << weights[j] << std::endl;
+			std::cout << weights[i][j] << std::endl;
 		}
 		delete buffer;
 	}
