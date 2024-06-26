@@ -1,5 +1,4 @@
 #include <iostream>
-#include <fstream>
 #include <math.h>
 #include <string>
 #include <vector>
@@ -65,30 +64,25 @@ void run_sim_fast_approx_ma() {
 	float wq_steps[8] = {1.0/(1<<10), 1.0/(1<<8), 1.0/(1<<10), 1.0/(1<<10), 1.0/(1<<10), 1.0/(1<<10), 1.0/(1<<8), 0.0};
 	float xq_steps[8] = {1.0/(1<< 8), 1.0/(1<<8), 1.0/(1<< 8), 1.0/(1<< 8), 1.0/(1<< 8), 1.0/(1<< 8), 1.0/(1<<8), 0.0};
 
+	float 
+
 	for (int i = 0; i < 1; ++i) {
 		std::string data_file_name = "./data/layer_" + std::to_string(i);
-		std::ifstream df(data_file_name);
-		if (!df) {
-			std::cout << "[ERRO] failed to open file" << std::endl;
-			continue;
+		FILE* f = fopen(data_file_name, "r");
+
+		int c = layers[i][0];
+		int n = layers[i][1];
+		int k = layers[i][2];
+		int s = layers[i][3];
+		int p = layers[i][4];
+
+		int buffer_size = c*n*k*k+n
+		float* buffer = new float[buffer_size];
+		fread(buffer, sizeof(float), buffer_size, f);
+		for (int j = 0; j < 10; ++j) {
+			std::cout << buffer[j] << std::endl;
 		}
-		std::vector<float> ft;
-		std::size_t n = df.tellg() / sizeof(float);
-		std::vector<float> buffer(n);
-		std::cout << n << std::endl;
 
-        if (!df.read(reinterpret_cast<char*>(buffer.data()), n)) {
-            continue; // Skip to the next file if there's an error
-        }
-
-        // Append the buffer to the allFloatValues vector
-        ft.insert(ft.end(), buffer.begin(), buffer.end());
-
-		df.close();
-
-		for (int j = 0; j < n; ++j) {
-			std::cout << ft[j] << std::endl;
-		}
 	}
 }
 
