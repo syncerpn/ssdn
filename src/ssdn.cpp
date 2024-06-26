@@ -73,12 +73,17 @@ void run_sim_fast_approx_ma() {
 			continue;
 		}
 		std::vector<float> ft;
-		float f;
-		while (df >> f) {
-			std::cout << "1" << std::endl;
-			ft.push_back(f);
-			std::cout << f << std::endl;
-		}
+		std::size_t n = df.tellg() / sizeof(float);
+		std::vector<float> buffer(n);
+
+        if (!df.read(reinterpret_cast<char*>(buffer.data()), n)) {
+            std::cerr << "Error reading file: " << filename << std::endl;
+            continue; // Skip to the next file if there's an error
+        }
+
+        // Append the buffer to the allFloatValues vector
+        ft.insert(ft.end(), buffer.begin(), buffer.end());
+
 		df.close();
 	}
 }
