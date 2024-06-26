@@ -71,12 +71,11 @@ void run_sim_fast_approx_ma() {
 		if (!df) {
 			std::cout << "[ERRO] failed to open file" << std::endl;
 			continue;
-		} else {
-			std::cout << "[INFO] file loaded" << std::endl;
 		}
 		std::vector<float> ft;
 		float f;
 		while (df >> f) {
+			std::cout < "1" << std::endl;
 			ft.push_back(f);
 			std::cout << f << std::endl;
 		}
