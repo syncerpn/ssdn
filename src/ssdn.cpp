@@ -66,7 +66,7 @@ void run_sim_fast_approx_ma() {
 	float xq_steps[8] = {1.0/(1<< 8), 1.0/(1<<8), 1.0/(1<< 8), 1.0/(1<< 8), 1.0/(1<< 8), 1.0/(1<< 8), 1.0/(1<<8), 0.0};
 
 	for (int i = 0; i < 1; ++i) {
-		std::string data_file_name = "data/layer_" + std::to_string(i);
+		std::string data_file_name = "./data/layer_" + std::to_string(i);
 		std::cout << data_file_name << std::endl;
 		std::ifstream df(data_file_name);
 		std::vector<float> ft;
