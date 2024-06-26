@@ -8,11 +8,12 @@ void lead_one_encode(int x, int &k, int &p) {
 		p = 0;
 	}
 	k = 0;
-	while (x > 1) {
-		x = x >> 1;
+	int xx = x;
+	while (xx > 1) {
+		xx = xx >> 1;
 		k += 1;
 	}
-	p = x - (1 << k);	
+	p = x - (1 << k);
 }
 
 void run_sim_fast_approx_ma() {
