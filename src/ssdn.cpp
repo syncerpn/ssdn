@@ -97,18 +97,35 @@ void run_sim_fast_approx_ma() {
 		float wf, hf;
 		fread(&wf, sizeof(float), 1, f);
 		fread(&hf, sizeof(float), 1, f);
+		int imw = int(wf);
+		int imh = int(hf);
 
-		int im_size = int(wf*hf);
+		int im_size = imw * imh;
 		float* im = new float[im_size];
 		fread(im, sizeof(float), im_size, f);
 
+		fclose(f);
+
+		data_file_name = "./data/gtd_" + std::to_string(i);
+		f = fopen(data_file_name.c_str(), "r");
+		
+		fread(&wf, sizeof(float), 1, f);
+		fread(&hf, sizeof(float), 1, f);
+		int gtw = int(wf);
+		int gth = int(hf);
+
+		int gt_size = gtw * gth;
+		float* gt = new float[gt_size];
+		fread(gt, sizeof(float), gt_size, f);
+
 		std::cout << wf << " " << hf << std::endl;
 		for (int j = 0; j < 20; ++j) {
-			std::cout << im[j] << std::endl;
+			std::cout << gt[j] << std::endl;
 		}
 
 		fclose(f);
 		delete[] im;
+		delete[] gt;
 	}
 
 	for (int i = 0; i < 8; ++i) {
