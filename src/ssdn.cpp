@@ -75,6 +75,7 @@ void run_sim_fast_approx_ma() {
 		std::vector<float> ft;
 		std::size_t n = df.tellg() / sizeof(float);
 		std::vector<float> buffer(n);
+		std::cout << n << std::endl;
 
         if (!df.read(reinterpret_cast<char*>(buffer.data()), n)) {
             continue; // Skip to the next file if there's an error
