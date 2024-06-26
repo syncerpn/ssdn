@@ -1,7 +1,8 @@
 #include <iostream>
-#include <ifstream>
+#include <fstream>
 #include <math.h>
 #include <string>
+#include <vector>
 
 #include "ssdn.h"
 
@@ -64,19 +65,20 @@ void run_sim_fast_approx_ma() {
 	float wq_steps[8] = {1.0/(1<<10), 1.0/(1<<8), 1.0/(1<<10), 1.0/(1<<10), 1.0/(1<<10), 1.0/(1<<10), 1.0/(1<<8), 0.0};
 	float xq_steps[8] = {1.0/(1<< 8), 1.0/(1<<8), 1.0/(1<< 8), 1.0/(1<< 8), 1.0/(1<< 8), 1.0/(1<< 8), 1.0/(1<<8), 0.0};
 
-	for (int i = 0; i < 14; ++i) {
+	for (int i = 0; i < 1; ++i) {
 		std::string data_file_name = "data/layer_" + std::to_string(i);
 		std::ifstream df(data_file_name);
-
+		std::vector<float> ft;
+		float f;
+		while (df >> f) {
+			ft.push_back(f);
+			std::cout << f << std::end;
+		}
+		df.close();
 	}
 }
 
 int main() {
-	int k, p;
-	for (int i = 0; i <= 128; ++i) {
-		for (int j = i; j <= 128; ++j) {
-			std::cout << i << " x " << j << " = " << approximate(i, j) << std::endl;
-		}
-	}
+	run_sim_fast_approx_ma();
 	return 0;
 }
