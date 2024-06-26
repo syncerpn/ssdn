@@ -22,7 +22,7 @@ EXECOBJ = $(addprefix $(OBJDIR), $(EXECOBJA))
 OBJS = $(addprefix $(OBJDIR), $(OBJ))
 DEPS = $(wildcard src/*.h) Makefile include/ssdn.h
 
-all: obj $(SLIB) $(ALIB) $(EXEC)
+all: obj data $(SLIB) $(ALIB) $(EXEC)
 
 $(EXEC): $(EXECOBJ) $(ALIB)
 	$(CPP) $(COMMON) $(CFLAGS) $^ -o $@ $(LDFLAGS) $(ALIB)
@@ -41,6 +41,7 @@ $(OBJDIR)%.o: %.cu $(DEPS)
 
 obj:
 	mkdir -p obj
+data:
 	mkdir -p data
 
 .PHONY: clean
