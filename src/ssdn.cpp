@@ -67,11 +67,12 @@ void run_sim_fast_approx_ma() {
 
 	for (int i = 0; i < 1; ++i) {
 		std::string data_file_name = "./data/layer_" + std::to_string(i);
-		std::cout << data_file_name << std::endl;
 		std::ifstream df(data_file_name);
 		if (!df) {
 			std::cout << "[ERRO] failed to open file" << std::endl;
 			continue;
+		} else {
+			std::cout << "[INFO] file loaded" << std::endl;
 		}
 		std::vector<float> ft;
 		float f;
