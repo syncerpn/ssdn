@@ -98,7 +98,7 @@ void run_sim_fast_approx_ma() {
 		fread(&wf, sizeof(float), 1, f);
 		fread(&hf, sizeof(float), 1, f);
 
-		int im_size = int(wf*hf)
+		int im_size = int(wf*hf);
 		float* im = new float[im_size];
 		fread(im, sizeof(float), im_size, f);
 
