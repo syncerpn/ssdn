@@ -67,6 +67,7 @@ void run_sim_fast_approx_ma() {
 
 	for (int i = 0; i < 1; ++i) {
 		std::string data_file_name = "data/layer_" + std::to_string(i);
+		std::cout << data_file_name << std::endl;
 		std::ifstream df(data_file_name);
 		std::vector<float> ft;
 		float f;
