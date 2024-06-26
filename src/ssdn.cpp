@@ -45,9 +45,9 @@ float quantize(float x, float step, int nbit, bool sign) {
 	return raw_q > pos_end ? pos_end : (raw_q < neg_end ? neg_end : raw_q);
 }
 
-// float forward(float* x, float* y, int** layers, float* weights, float* biases, float* wq_steps, float* xq_steps) {
+float forward(float* x, float* y, int** layers, float* weights, float* biases, float* wq_steps, float* xq_steps) {
 
-// }
+}
 
 void run_sim_fast_approx_ma() {
 	int layers[8][5] = {
@@ -67,7 +67,8 @@ void run_sim_fast_approx_ma() {
 	float** weights = new float*[8];
 	float** biases = new float*[8];
 
-	for (int i = 0; i < 1; ++i) {
+	// load model
+	for (int i = 0; i < 8; ++i) {
 		std::string data_file_name = "./data/layer_" + std::to_string(i);
 		FILE* f = fopen(data_file_name.c_str(), "r");
 
@@ -77,29 +78,33 @@ void run_sim_fast_approx_ma() {
 		int s = layers[i][3];
 		int p = layers[i][4];
 
-		int weight_size = c * n * k * k;
-		weights[i] = new float[weight_size];
-
 		int bias_size = n;
 		biases[i] = new float[bias_size];
+		fread(biases[i], sizeof(float), bias_size, f);
 
-		int buffer_size = weight_size + bias_size;
-		float* buffer = new float[buffer_size];
-		fread(buffer, sizeof(float), buffer_size, f);
+		int weight_size = c * n * k * k;
+		weights[i] = new float[weight_size];
+		fread(weights[i], sizeof(float), weight_size, f);
 
-		copy_cpu(bias_size, buffer, 1, biases[i], 1);
-		copy_cpu(weight_size, buffer + bias_size, 1, weights[i], 1);
-		
-		for (int j = 0; j < 10; ++j) {
-			std::cout << biases[i][j] << std::endl;
-		}
-		std::cout << std::endl;
-		for (int j = 0; j < 10; ++j) {
-			std::cout << weights[i][j] << std::endl;
-		}
-		delete buffer;
+		fclose(f);
 	}
 
+	// load images
+	for (int i = 0; i < 1; ++i) {
+		std::string data_file_name = "./data/im_" + std::to_string(i);
+		FILE* f = fopen(data_file_name.c_str(), "r");
+		
+		int w, h;
+		fread(&w, sizeof(int), 1, f);
+		fread(&h, sizeof(int), 1, f);
+
+		std::cout << w << " " << h << std::endl;
+
+		//  = (int)buffer[0];
+		// int h = (int)buffer[1];
+		// float* im = buffer + 2;
+		fclose(f);
+	}
 
 	for (int i = 0; i < 8; ++i) {
 		delete[] weights[i];
