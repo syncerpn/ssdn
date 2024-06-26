@@ -76,7 +76,7 @@ void run_sim_fast_approx_ma() {
 		int s = layers[i][3];
 		int p = layers[i][4];
 
-		int buffer_size = c*n*k*k+n
+		int buffer_size = c*n*k*k+n;
 		float* buffer = new float[buffer_size];
 		fread(buffer, sizeof(float), buffer_size, f);
 		for (int j = 0; j < 10; ++j) {
