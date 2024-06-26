@@ -91,7 +91,7 @@ void run_sim_fast_approx_ma() {
 
 	// load images
 	for (int i = 0; i < 1; ++i) {
-		std::string data_file_name = "./data/im_" + std::to_string(i);
+		std::string data_file_name = "./data/imd_" + std::to_string(i);
 		FILE* f = fopen(data_file_name.c_str(), "r");
 		
 		int w, h;
