@@ -98,7 +98,7 @@ void run_sim_fast_approx_ma() {
 		fread(&wf, sizeof(float), 1, f);
 		fread(&hf, sizeof(float), 1, f);
 
-		std::cout << w << " " << h << std::endl;
+		std::cout << wf << " " << hf << std::endl;
 
 		//  = (int)buffer[0];
 		// int h = (int)buffer[1];
