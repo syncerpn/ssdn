@@ -75,7 +75,7 @@ void run_sim_fast_approx_ma() {
 		std::vector<float> ft;
 		float f;
 		while (df >> f) {
-			std::cout < "1" << std::endl;
+			std::cout << "1" << std::endl;
 			ft.push_back(f);
 			std::cout << f << std::endl;
 		}
