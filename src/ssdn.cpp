@@ -42,7 +42,7 @@ int approximate(int i, int j) {
 float quantize(float x, float step, int nbit, bool sign) {
 	int pos_end = sign ?  (1 << (nbit - 1)) - 1 : (1 << nbit) - 1;
 	int neg_end = sign ? -(1 << (nbit - 1))     : 0;
-	int raw_q = math.roundf(x/step);
+	int raw_q = roundf(x/step);
 	return raw_q > pos_end ? pos_end : (raw_q < neg_end ? neg_end : raw_q);
 }
 
