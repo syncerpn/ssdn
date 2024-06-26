@@ -98,12 +98,17 @@ void run_sim_fast_approx_ma() {
 		fread(&wf, sizeof(float), 1, f);
 		fread(&hf, sizeof(float), 1, f);
 
-		std::cout << wf << " " << hf << std::endl;
+		int im_size = int(wf*hf)
+		float* im = new float[im_size];
+		fread(im, sizeof(float), im_size, f);
 
-		//  = (int)buffer[0];
-		// int h = (int)buffer[1];
-		// float* im = buffer + 2;
+		std::cout << wf << " " << hf << std::endl;
+		for (int j = 0; j < 20; ++j) {
+			std::cout << im[j] << std::endl;
+		}
+
 		fclose(f);
+		delete[] im;
 	}
 
 	for (int i = 0; i < 8; ++i) {
