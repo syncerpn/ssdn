@@ -84,6 +84,10 @@ void run_sim_fast_approx_ma() {
         ft.insert(ft.end(), buffer.begin(), buffer.end());
 
 		df.close();
+
+		for (int j = 0; j < n; ++j) {
+			std::cout << ft[j] << std::endl;
+		}
 	}
 }
 
