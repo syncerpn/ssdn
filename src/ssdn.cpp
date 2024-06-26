@@ -94,9 +94,9 @@ void run_sim_fast_approx_ma() {
 		std::string data_file_name = "./data/imd_" + std::to_string(i);
 		FILE* f = fopen(data_file_name.c_str(), "r");
 		
-		int w, h;
-		fread(&w, sizeof(int), 1, f);
-		fread(&h, sizeof(int), 1, f);
+		float wf, hf;
+		fread(&wf, sizeof(float), 1, f);
+		fread(&hf, sizeof(float), 1, f);
 
 		std::cout << w << " " << h << std::endl;
 
