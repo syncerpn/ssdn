@@ -1,4 +1,7 @@
 #include <iostream>
+#include <ifstream>
+#include <math.h>
+#include <string>
 
 #include "ssdn.h"
 
@@ -35,8 +38,37 @@ int approximate(int i, int j) {
 	return sign_i * sign_j * (i * j - e);
 }
 
-void run_sim_fast_approx_ma() {
+float quantize(float x, float step, int nbit, bool sign) {
+	int pos_end = sign ?  (1 << (nbit - 1)) - 1 : (1 << nbit) - 1;
+	int neg_end = sign ? -(1 << (nbit - 1))     : 0;
+	int raw_q = math.roundf(x/step);
+	return raw_q > pos_end ? pos_end : (raw_q < neg_end ? neg_end : raw_q);
+}
 
+float forward(float* x, float* y, int** layers, float* weights, float* biases, float* wq_steps, float* xq_steps) {
+
+}
+
+void run_sim_fast_approx_ma() {
+	int layers[8][5] = {
+		{ 1, 64, 3, 1, 1},
+		{64, 32, 1, 1, 0},
+		{32, 32, 3, 1, 1},
+		{32, 32, 3, 1, 1},
+		{32, 32, 3, 1, 1},
+		{32, 32, 3, 1, 1},
+		{32, 64, 1, 1, 0},
+		{64,  4, 3, 1, 1},
+	};
+
+	float wq_steps[8] = {1.0/(1<<10), 1.0/(1<<8), 1.0/(1<<10), 1.0/(1<<10), 1.0/(1<<10), 1.0/(1<<10), 1.0/(1<<8), 0.0};
+	float xq_steps[8] = {1.0/(1<< 8), 1.0/(1<<8), 1.0/(1<< 8), 1.0/(1<< 8), 1.0/(1<< 8), 1.0/(1<< 8), 1.0/(1<<8), 0.0};
+
+	for (int i = 0; i < 14; ++i) {
+		std::string data_file_name = "data/layer_" + std::to_string(i);
+		std::ifstream df(data_file_name);
+
+	}
 }
 
 int main() {

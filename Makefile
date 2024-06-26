@@ -41,6 +41,7 @@ $(OBJDIR)%.o: %.cu $(DEPS)
 
 obj:
 	mkdir -p obj
+	mkdir -p data
 
 .PHONY: clean
 
