@@ -16,7 +16,7 @@ void lead_one_encode(int x, int &k, int &p) {
 	p = x - (1 << k);
 }
 
-void approximate(int i, int j) {
+int approximate(int i, int j) {
 	if (i == 0 || j == 0) return 0;
 
 	int sign_i = i > 0 ? 1 : -1;
