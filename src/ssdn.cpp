@@ -77,7 +77,6 @@ void run_sim_fast_approx_ma() {
 		std::vector<float> buffer(n);
 
         if (!df.read(reinterpret_cast<char*>(buffer.data()), n)) {
-            std::cerr << "Error reading file: " << filename << std::endl;
             continue; // Skip to the next file if there's an error
         }
 
