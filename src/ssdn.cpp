@@ -68,7 +68,7 @@ void run_sim_fast_approx_ma() {
 
 	for (int i = 0; i < 1; ++i) {
 		std::string data_file_name = "./data/layer_" + std::to_string(i);
-		FILE* f = fopen(data_file_name, "r");
+		FILE* f = fopen(data_file_name.c_str(), "r");
 
 		int c = layers[i][0];
 		int n = layers[i][1];
