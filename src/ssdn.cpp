@@ -46,9 +46,9 @@ float quantize(float x, float step, int nbit, bool sign) {
 	return raw_q > pos_end ? pos_end : (raw_q < neg_end ? neg_end : raw_q);
 }
 
-float forward(float* x, float* y, int** layers, float* weights, float* biases, float* wq_steps, float* xq_steps) {
+// float forward(float* x, float* y, int** layers, float* weights, float* biases, float* wq_steps, float* xq_steps) {
 
-}
+// }
 
 void run_sim_fast_approx_ma() {
 	int layers[8][5] = {
@@ -72,7 +72,7 @@ void run_sim_fast_approx_ma() {
 		float f;
 		while (df >> f) {
 			ft.push_back(f);
-			std::cout << f << std::end;
+			std::cout << f << std::endl;
 		}
 		df.close();
 	}
