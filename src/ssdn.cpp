@@ -183,8 +183,8 @@ void run_sim_fast_approx_ma() {
 
 	const int H_MAX = 512;
 	const int W_MAX = 512;
-	const int N_MAX = 64
-	const int K_MAX = 3
+	const int N_MAX = 64;
+	const int K_MAX = 3;
 
 	float** weights = new float*[8];
 	float** biases = new float*[8];
