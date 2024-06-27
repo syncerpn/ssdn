@@ -131,6 +131,7 @@ float forward(float* im, int imw, int imh,
 	int xh = imh;
 
 	for (int li = 0; li < n_layer; ++li) {
+		std::cout << "[INFO] layer " << li;
 		int zw, zh, zn;
 		float* z = conv2d(x, xw, xh, weights[li], biases[li], layers[li], xq_steps[li], wq_steps[li], zw, zh, zn);
 		if (li > 0) {
@@ -140,6 +141,7 @@ float forward(float* im, int imw, int imh,
 			min_cpu(zw*zh*zn, 0, z, 1);
 		}
 		x = z;
+		std::cout << " done" << std::endl;
 	}
 
 	delete[] x;
