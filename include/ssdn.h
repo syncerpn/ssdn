@@ -38,7 +38,9 @@ void fill_cpu(int N, float ALPHA, float *X, int INCX);
 void axpy_cpu(int N, float ALPHA, float *X, int INCX, float *Y, int INCY);
 void mul_cpu(int N, float *X, int INCX, float *Y, int INCY);
 void copy_cpu(int N, float *X, int INCX, float *Y, int INCY);
+
 void accumulate_cpu(int N, int K, float *X, int INCX, float *Y, int INCY);
+void tile_repeat(int N, int K, int M, float *X, int INCX, float *Y, int INCY);
 
 void add_cpu(int N, float ALPHA, float *X, int INCX=1, float *Y=0, int INCY=1);
 void scale_cpu(int N, float ALPHA, float *X, int INCX=1, float *Y=0, int INCY=1);
