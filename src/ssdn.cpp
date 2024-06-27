@@ -143,9 +143,9 @@ float forward(float* im, int imw, int imh,
 		// }
 		std::cout << "[INFO] layer " << li;
 		z = conv2d(x, xw, xh, weights[li], biases[li], layers[li], xq_steps[li], wq_steps[li], zw, zh, zn);
-		if (li > 0) {
-			delete[] x;
-		}
+		// if (li > 0) {
+		// 	delete[] x;
+		// }
 		if (li != n_layer-1) {
 			min_cpu(zw*zh*zn, 0, z, 1);
 		}
@@ -280,58 +280,58 @@ void run_sim_fast_approx_ma() {
 }
 
 int main() {
-	// run_sim_fast_approx_ma();
-	int xw = 5;
-	int xh = 4;
-	int c = 2;
-	int k = 3;
-	int p = 1;
-	int s = 1;
-	int n = 4;
+	run_sim_fast_approx_ma();
+	// int xw = 5;
+	// int xh = 4;
+	// int c = 2;
+	// int k = 3;
+	// int p = 1;
+	// int s = 1;
+	// int n = 4;
 
-	float* x = new float[xw * xh * c];
-	for (int ic = 0; ic < c; ++ic) {
-		for (int ih = 0; ih < xh; ++ih) {
-			for (int iw = 0; iw < xw; ++iw) {
-				x[ic*xh*xw+ih*xw+iw] = ic*xh*xw+ih*xw+iw;
-				std::cout << x[ic*xh*xw+ih*xw+iw] << " ";
-			}
-			std::cout << std::endl;
-		}
-	}
-	std::cout << std::endl;
+	// float* x = new float[xw * xh * c];
+	// for (int ic = 0; ic < c; ++ic) {
+	// 	for (int ih = 0; ih < xh; ++ih) {
+	// 		for (int iw = 0; iw < xw; ++iw) {
+	// 			x[ic*xh*xw+ih*xw+iw] = ic*xh*xw+ih*xw+iw;
+	// 			std::cout << x[ic*xh*xw+ih*xw+iw] << " ";
+	// 		}
+	// 		std::cout << std::endl;
+	// 	}
+	// }
+	// std::cout << std::endl;
 
-	float* w = new float[k*k*c*n];
-	for (int i = 0; i < k*k*c*n; ++i) {
-		w[i] = (float)i / 2;
-		std::cout << w[i] << " ";
-	}
-	std::cout << std::endl << std::endl;
+	// float* w = new float[k*k*c*n];
+	// for (int i = 0; i < k*k*c*n; ++i) {
+	// 	w[i] = (float)i / 2;
+	// 	std::cout << w[i] << " ";
+	// }
+	// std::cout << std::endl << std::endl;
 
-	float* b = new float[n];
-	for (int i = 0; i < n; ++i) {
-		b[i] = (float)i / 3;
-		std::cout << b[i] << " ";
-	}
+	// float* b = new float[n];
+	// for (int i = 0; i < n; ++i) {
+	// 	b[i] = (float)i / 3;
+	// 	std::cout << b[i] << " ";
+	// }
 
-	int yw, yh, yn;
-	int ldesc[5] = {c, n, k, s, p};
-	float* y = conv2d(x, xw, xh, w, b, ldesc, 0, 0, yw, yh, yn);
+	// int yw, yh, yn;
+	// int ldesc[5] = {c, n, k, s, p};
+	// float* y = conv2d(x, xw, xh, w, b, ldesc, 0, 0, yw, yh, yn);
 
-	for (int ni = 0; ni < n; ++ni) {
-		for (int hi = 0; hi < yh; ++hi) {
-			for (int wi = 0; wi < yw; ++wi) {
-				std::cout << y[ni*yh*yw+hi*yw+wi] << " ";
-			}
-			std::cout << std::endl;
-		}
-		std::cout << std::endl;
-	}
-	std::cout << std::endl;
+	// for (int ni = 0; ni < n; ++ni) {
+	// 	for (int hi = 0; hi < yh; ++hi) {
+	// 		for (int wi = 0; wi < yw; ++wi) {
+	// 			std::cout << y[ni*yh*yw+hi*yw+wi] << " ";
+	// 		}
+	// 		std::cout << std::endl;
+	// 	}
+	// 	std::cout << std::endl;
+	// }
+	// std::cout << std::endl;
 
-	delete[] x;
-	delete[] w;
-	delete[] y;
-	delete[] b;
+	// delete[] x;
+	// delete[] w;
+	// delete[] y;
+	// delete[] b;
 	return 0;
 }
