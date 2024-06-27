@@ -210,6 +210,7 @@ int main() {
 			std::cout << std::endl;
 		}
 	}
+	std::cout << std::endl;
 	float* x_padded = padding(x, xw, xh, p);
 	int xpw = xw + 2 * p;
 	int xph = xh + 2 * p;
@@ -223,6 +224,7 @@ int main() {
 		}
 	}
 
+	std::cout << std::endl;
 	float* x_mat = unroll(x_padded, xpw, xph, c, k, s);
 
 	int yw = (xpw - k) / s + 1;
