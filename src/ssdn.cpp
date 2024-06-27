@@ -283,11 +283,11 @@ int main() {
 	// run_sim_fast_approx_ma();
 	int xw = 5;
 	int xh = 4;
-	int c = 1;
+	int c = 2;
 	int k = 3;
 	int p = 1;
 	int s = 1;
-	int n = 2;
+	int n = 4;
 
 	float* x = new float[xw * xh * c];
 	for (int ic = 0; ic < c; ++ic) {
@@ -300,7 +300,7 @@ int main() {
 		}
 	}
 	std::cout << std::endl;
-	float* x_padded = padding(x, xw, xh, p);
+	float* x_padded = padding(x, xw, xh, c, p);
 	int xpw = xw + 2 * p;
 	int xph = xh + 2 * p;
 
