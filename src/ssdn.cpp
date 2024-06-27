@@ -96,7 +96,7 @@ void conv2d(float* x, int xw, int xh, float* w, float* b, int* desc, float xq_st
 
 float forward(float* x, int xw, int xh,
 	float* y, int yw, int yh,
-	int*[] layers, float* weights, float* biases,
+	int** layers, float* weights, float* biases,
 	float* wq_steps, float* xq_steps) {
 
 
@@ -115,6 +115,16 @@ void run_sim_fast_approx_ma() {
 		{32, 64, 1, 1, 0},
 		{64,  4, 3, 1, 1},
 	};
+
+	int **layers = new int*[8];
+	layers[0] = { 1, 64, 3, 1, 1};
+	layers[1] = {64, 32, 1, 1, 0};
+	layers[2] = {32, 32, 3, 1, 1};
+	layers[3] = {32, 32, 3, 1, 1};
+	layers[4] = {32, 32, 3, 1, 1};
+	layers[5] = {32, 32, 3, 1, 1};
+	layers[6] = {32, 64, 1, 1, 0};
+	layers[7] = {64,  4, 3, 1, 1};
 
 	float wq_steps[8] = {1.0/(1<<10), 1.0/(1<<8), 1.0/(1<<10), 1.0/(1<<10), 1.0/(1<<10), 1.0/(1<<10), 1.0/(1<<8), 0.0};
 	float xq_steps[8] = {1.0/(1<< 8), 1.0/(1<<8), 1.0/(1<< 8), 1.0/(1<< 8), 1.0/(1<< 8), 1.0/(1<< 8), 1.0/(1<<8), 0.0};
