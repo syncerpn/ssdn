@@ -222,6 +222,8 @@ void run_sim_fast_approx_ma() {
 		fclose(f);
 	}
 
+	float* im = cuda_make_array(0, H_MAX * W_MAX);
+	float* gt = cuda_make_array(0, H_MAX * W_MAX * 4);
 	// load images
 	float psnr_mean = 0;
 	for (int i = 0; i < 14; ++i) {
@@ -241,7 +243,7 @@ void run_sim_fast_approx_ma() {
 		int im_size = imw * imh;
 		float* _im = new float[im_size];
 		fread(_im, sizeof(float), im_size, f);
-		float* im = cuda_make_array(_im, im_size);
+		cuda_push_array(im, _im, im_size);
 		delete[] _im;
 
 		fclose(f);
@@ -258,7 +260,7 @@ void run_sim_fast_approx_ma() {
 		int gt_size = gtw * gth;
 		float* _gt = new float[gt_size];
 		fread(_gt, sizeof(float), gt_size, f);
-		float* gt = cuda_make_array(_gt, gt_size);
+		cuda_push_array(gt, _gt, gt_size);
 		delete[] _gt;
 
 		fclose(f);
@@ -273,11 +275,18 @@ void run_sim_fast_approx_ma() {
 
 	cuda_free(im);
 	cuda_free(gt);
+	cuda_free(workspace[0]);
+	cuda_free(workspace[1]);
+	cuda_free(workspace[2]);
+	cuda_free(workspace[3]);
+	cuda_free(workspace[4]);
+	cuda_free(workspace[5]);
 
 	for (int i = 0; i < 8; ++i) {
 		cuda_free(weights[i]);
 		cuda_free(biases[i]);
 	}
+	delete[] workspace;
 	delete[] weights;
 	delete[] biases;
 }
