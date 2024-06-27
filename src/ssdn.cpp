@@ -133,6 +133,12 @@ float forward(float* im, int imw, int imh,
 	int zw, zh, zn;
 	float* z;
 	for (int li = 0; li < n_layer; ++li) {
+		for (int hi = 0; hi < xh; ++hi) {
+			for (int wi = 0; wi < xw; ++wi) {
+				std::cout << x[hi*xw+wi] << " ";
+			}
+			std::cout << std::endl;
+		}
 		std::cout << "[INFO] layer " << li;
 		z = conv2d(x, xw, xh, weights[li], biases[li], layers[li], xq_steps[li], wq_steps[li], zw, zh, zn);
 		if (li > 0) {
