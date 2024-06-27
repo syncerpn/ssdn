@@ -135,12 +135,12 @@ float forward(float* im, int imw, int imh,
 	int zw, zh, zn;
 	float* z;
 	for (int li = 0; li < n_layer; ++li) {
-		for (int hi = 0; hi < xh; ++hi) {
-			for (int wi = 0; wi < xw; ++wi) {
-				std::cout << x[hi*xw+wi] << " ";
-			}
-			std::cout << std::endl;
-		}
+		// for (int hi = 0; hi < xh; ++hi) {
+		// 	for (int wi = 0; wi < xw; ++wi) {
+		// 		std::cout << x[hi*xw+wi] << " ";
+		// 	}
+		// 	std::cout << std::endl;
+		// }
 		std::cout << "[INFO] layer " << li;
 		z = conv2d(x, xw, xh, weights[li], biases[li], layers[li], xq_steps[li], wq_steps[li], zw, zh, zn);
 		if (li > 0) {
@@ -156,7 +156,7 @@ float forward(float* im, int imw, int imh,
 
 		for (int hi = 0; hi < zh; ++hi) {
 			for (int wi = 0; wi < zw; ++wi) {
-				std::cout << z[hi*zw+wi] << " ";
+				std::cout << z[2*zh*zw+hi*zw+wi] << " ";
 			}
 			std::cout << std::endl;
 		}
@@ -280,105 +280,105 @@ void run_sim_fast_approx_ma() {
 }
 
 int main() {
-	// run_sim_fast_approx_ma();
-	int xw = 5;
-	int xh = 4;
-	int c = 2;
-	int k = 3;
-	int p = 1;
-	int s = 1;
-	int n = 4;
+	run_sim_fast_approx_ma();
+	// int xw = 5;
+	// int xh = 4;
+	// int c = 2;
+	// int k = 3;
+	// int p = 1;
+	// int s = 1;
+	// int n = 4;
 
-	float* x = new float[xw * xh * c];
-	for (int ic = 0; ic < c; ++ic) {
-		for (int ih = 0; ih < xh; ++ih) {
-			for (int iw = 0; iw < xw; ++iw) {
-				x[ic*xh*xw+ih*xw+iw] = ic*xh*xw+ih*xw+iw;
-				std::cout << x[ic*xh*xw+ih*xw+iw] << " ";
-			}
-			std::cout << std::endl;
-		}
-	}
-	std::cout << std::endl;
-	float* x_padded = padding(x, xw, xh, c, p);
-	int xpw = xw + 2 * p;
-	int xph = xh + 2 * p;
+	// float* x = new float[xw * xh * c];
+	// for (int ic = 0; ic < c; ++ic) {
+	// 	for (int ih = 0; ih < xh; ++ih) {
+	// 		for (int iw = 0; iw < xw; ++iw) {
+	// 			x[ic*xh*xw+ih*xw+iw] = ic*xh*xw+ih*xw+iw;
+	// 			std::cout << x[ic*xh*xw+ih*xw+iw] << " ";
+	// 		}
+	// 		std::cout << std::endl;
+	// 	}
+	// }
+	// std::cout << std::endl;
+	// float* x_padded = padding(x, xw, xh, c, p);
+	// int xpw = xw + 2 * p;
+	// int xph = xh + 2 * p;
 
-	for (int ic = 0; ic < c; ++ic) {
-		for (int ih = 0; ih < xph; ++ih) {
-			for (int iw = 0; iw < xpw; ++iw) {
-				std::cout << x_padded[ic*xph*xpw+ih*xpw+iw] << " ";
-			}
-			std::cout << std::endl;
-		}
-	}
-	std::cout << std::endl;
+	// for (int ic = 0; ic < c; ++ic) {
+	// 	for (int ih = 0; ih < xph; ++ih) {
+	// 		for (int iw = 0; iw < xpw; ++iw) {
+	// 			std::cout << x_padded[ic*xph*xpw+ih*xpw+iw] << " ";
+	// 		}
+	// 		std::cout << std::endl;
+	// 	}
+	// }
+	// std::cout << std::endl;
 
-	float* x_mat = unroll(x_padded, xpw, xph, c, k, s);
+	// float* x_mat = unroll(x_padded, xpw, xph, c, k, s);
 
-	int yw = (xpw - k) / s + 1;
-	int yh = (xph - k) / s + 1;
+	// int yw = (xpw - k) / s + 1;
+	// int yh = (xph - k) / s + 1;
 
-	int y_size = yw * yh;
-	int f_size = k * k * c;
+	// int y_size = yw * yh;
+	// int f_size = k * k * c;
 
-	for (int hi = 0; hi < yh; ++hi) {
-		for (int wi = 0; wi < yw; ++wi) {
-			for (int kki = 0; kki < c*k*k; ++kki) {
-				std::cout << x_mat[(hi*yw+wi)*k*k*c + kki] << " ";
-			}
-			std::cout << std::endl;
-		}
-	}
-	std::cout << std::endl;
+	// for (int hi = 0; hi < yh; ++hi) {
+	// 	for (int wi = 0; wi < yw; ++wi) {
+	// 		for (int kki = 0; kki < c*k*k; ++kki) {
+	// 			std::cout << x_mat[(hi*yw+wi)*k*k*c + kki] << " ";
+	// 		}
+	// 		std::cout << std::endl;
+	// 	}
+	// }
+	// std::cout << std::endl;
 
-	float* w = new float[f_size * n];
-	for (int i = 0; i < f_size * n; ++i) {
-		w[i] = (float)i / 2;
-		std::cout << w[i] << " ";
-	}
-	std::cout << std::endl << std::endl;
+	// float* w = new float[f_size * n];
+	// for (int i = 0; i < f_size * n; ++i) {
+	// 	w[i] = (float)i / 2;
+	// 	std::cout << w[i] << " ";
+	// }
+	// std::cout << std::endl << std::endl;
 
-	float* w_mat_r = new float[f_size * n * y_size];
-	tile_repeat(f_size * n, f_size, y_size, w, 1, w_mat_r, 1);
-	float* x_mat_r = new float[y_size * f_size * n];
-	tile_repeat(f_size * y_size, f_size * y_size, n, x_mat, 1, x_mat_r, 1);
+	// float* w_mat_r = new float[f_size * n * y_size];
+	// tile_repeat(f_size * n, f_size, y_size, w, 1, w_mat_r, 1);
+	// float* x_mat_r = new float[y_size * f_size * n];
+	// tile_repeat(f_size * y_size, f_size * y_size, n, x_mat, 1, x_mat_r, 1);
 
-	for (int i = 0; i < y_size * n; ++i) {
-		for (int j = 0; j < f_size; ++j) {
-			std::cout << x_mat_r[i*f_size+j] << " ";
-		}
-		std::cout << std::endl;
-	}
-	std::cout << std::endl;
+	// for (int i = 0; i < y_size * n; ++i) {
+	// 	for (int j = 0; j < f_size; ++j) {
+	// 		std::cout << x_mat_r[i*f_size+j] << " ";
+	// 	}
+	// 	std::cout << std::endl;
+	// }
+	// std::cout << std::endl;
 
-	for (int i = 0; i < y_size * n; ++i) {
-		for (int j = 0; j < f_size; ++j) {
-			std::cout << w_mat_r[i*f_size+j] << " ";
-		}
-		std::cout << std::endl;
-	}
-	std::cout << std::endl;
+	// for (int i = 0; i < y_size * n; ++i) {
+	// 	for (int j = 0; j < f_size; ++j) {
+	// 		std::cout << w_mat_r[i*f_size+j] << " ";
+	// 	}
+	// 	std::cout << std::endl;
+	// }
+	// std::cout << std::endl;
 
-	mul_cpu(f_size * n * y_size, w_mat_r, 1, x_mat_r, 1);
+	// mul_cpu(f_size * n * y_size, w_mat_r, 1, x_mat_r, 1);
 
-	float* y = new float[y_size];
-	accumulate_cpu(y_size, f_size, x_mat_r, 1, y, 1);
+	// float* y = new float[y_size];
+	// accumulate_cpu(y_size, f_size, x_mat_r, 1, y, 1);
 
-	for (int hi = 0; hi < yh; ++hi) {
-		for (int wi = 0; wi < yw; ++wi) {
-			std::cout << y[hi*yw+wi] << " ";
-		}
-		std::cout << std::endl;
-	}
-	std::cout << std::endl;
+	// for (int hi = 0; hi < yh; ++hi) {
+	// 	for (int wi = 0; wi < yw; ++wi) {
+	// 		std::cout << y[hi*yw+wi] << " ";
+	// 	}
+	// 	std::cout << std::endl;
+	// }
+	// std::cout << std::endl;
 
-	delete[] x;
-	delete[] x_padded;
-	delete[] x_mat;
-	delete[] w;
-	delete[] y;
-	delete[] w_mat_r;
-	delete[] x_mat_r;
+	// delete[] x;
+	// delete[] x_padded;
+	// delete[] x_mat;
+	// delete[] w;
+	// delete[] y;
+	// delete[] w_mat_r;
+	// delete[] x_mat_r;
 	return 0;
 }
