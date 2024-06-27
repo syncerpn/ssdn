@@ -167,12 +167,12 @@ float forward(float* im, int imw, int imh,
 		std::cout << std::endl;
 	}
 
-	axpy_cpu(zh*zw*4, -1, gt, 1, z_im, 1);
-	pow_cpu(zh*zw*4, 2, z_im, 1);
+	axpy_cpu(gtw*gth, -1, gt, 1, z_im, 1);
+	pow_cpu(gtw*gth, 2, z_im, 1);
 	float sum = 0;
-	for (int hi = 2; hi < zh - 2; ++hi) {
+	for (int hi = 2; hi < gth - 2; ++hi) {
 		float t = 0;
-		accumulate_cpu(1, zw-4, z_im+hi*zw+2, 1, &t, 1);
+		accumulate_cpu(1, gtw-4, z_im+hi*gtw+2, 1, &t, 1);
 		sum += t;
 	}
 	float mean = sum / ((zh-4)*(zw-4));
