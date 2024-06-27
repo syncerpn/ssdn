@@ -45,33 +45,33 @@ float quantize(float x, float step, int nbit, bool sign) {
 	return raw_q > pos_end ? pos_end : (raw_q < neg_end ? neg_end : raw_q);
 }
 
-void padding(float* x, int xw, int xh, int c, int p, float* xp) {
-	int xpw = xw + 2 * p;
-	int xph = xh + 2 * p;
-	for (int ci = 0; ci < c; ++ci) {
-		for (int i = p; i < xph - p; ++i) {
-			copy_gpu(xw, x+ci*xh*xw+(i-p)*xw, 1, xp+ci*xph*xpw+i*xpw+p, 1);
-		}
-	}
-}
+// void padding(float* x, int xw, int xh, int c, int p, float* xp) {
+// 	int xpw = xw + 2 * p;
+// 	int xph = xh + 2 * p;
+// 	for (int ci = 0; ci < c; ++ci) {
+// 		for (int i = p; i < xph - p; ++i) {
+// 			copy_gpu(xw, x+ci*xh*xw+(i-p)*xw, 1, xp+ci*xph*xpw+i*xpw+p, 1);
+// 		}
+// 	}
+// }
 
-void unroll(float* x, int xw, int xh, int c, int k, int s, float* x_mat) {
-	int yw = (xw - k) / s + 1;
-	int yh = (xh - k) / s + 1;
+// void unroll(float* x, int xw, int xh, int c, int k, int s, float* x_mat) {
+// 	int yw = (xw - k) / s + 1;
+// 	int yh = (xh - k) / s + 1;
 
-	int y_size = yw * yh;
-	int f_size = k * k * c;
+// 	int y_size = yw * yh;
+// 	int f_size = k * k * c;
 
-	for (int hi = 0; hi < yh; ++hi) {
-		for (int wi = 0; wi < yw; ++wi) {
-			for (int ci = 0; ci < c; ++ci) {
-				for (int ki = 0; ki < k; ++ki) {
-					copy_gpu(k, x+ci*xh*xw+(hi*s+ki)*xw+wi*s, 1, x_mat+(hi*yw+wi)*f_size+ci*k*k+ki*k, 1);
-				}
-			}
-		}
-	}
-}
+// 	for (int hi = 0; hi < yh; ++hi) {
+// 		for (int wi = 0; wi < yw; ++wi) {
+// 			for (int ci = 0; ci < c; ++ci) {
+// 				for (int ki = 0; ki < k; ++ki) {
+// 					copy_gpu(k, x+ci*xh*xw+(hi*s+ki)*xw+wi*s, 1, x_mat+(hi*yw+wi)*f_size+ci*k*k+ki*k, 1);
+// 				}
+// 			}
+// 		}
+// 	}
+// }
 
 void conv2d(float* x, int xw, int xh,
 	float* w, float* b, int* desc,
@@ -92,11 +92,11 @@ void conv2d(float* x, int xw, int xh,
 	float* b_mat_r = workspace[4];
 	float* y = workspace[5];
 
-	padding(x, xw, xh, c, p, x_padded);
+	padding_gpu(x, xw, xh, c, p, x_padded);
 	int xpw = xw + 2 * p;
 	int xph = xh + 2 * p;
 
-	unroll(x_padded, xpw, xph, c, k, s, x_mat);
+	unrolling_gpu(x_padded, xpw, xph, c, k, s, x_mat);
 	yw = (xpw - k) / s + 1;
 	yh = (xph - k) / s + 1;
 	yn = n;

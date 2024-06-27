@@ -35,7 +35,8 @@ void pow_gpu(int N, float ALPHA, float *X, int INCX=1, float *Y=0, int INCY=1);
 void min_gpu(int N, float MIN, float *X, int INCX=1, float *Y=0, int INCY=1);
 void max_gpu(int N, float MAX, float *X, int INCX=1, float *Y=0, int INCY=1);
 
-void add_bias_gpu(float *output, float *biases, int batch, int n, int size);
+void padding_gpu(float* X, int w, int h, int c, int p, float* Y);
+void unrolling_gpu(float* X, int w, int h, int c, int k, int s, float* Y);
 
 // blas.cpp
 void fill_cpu(int N, float ALPHA, float *X, int INCX);

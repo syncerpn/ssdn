@@ -149,20 +149,48 @@ void max_gpu(int N, float MAX, float *X, int INCX, float *Y, int INCY) {
     check_error(cudaPeekAtLastError());
 }
 
-__global__ void add_bias_kernel(float *output, float *biases, int batch, int n, int size) {
+__global__ void padding_kernel(float* X, int w, int h, int c, int p, float* Y) {
     int index = (blockIdx.x + blockIdx.y*gridDim.x) * blockDim.x + threadIdx.x;
-    if (index >= n*size*batch) return;
-    int i = index % size;
-    index /= size;
-    int j = index % n;
-    index /= n;
-    int k = index;
-
-    output[(k*n+j)*size + i] += biases[j];
+    int pw = w + 2 * p;
+    int ph = h + 2 * p;
+    if (i >= pw*ph*c) return;
+    int wi = index % pw;
+    index /= pw;
+    int hi = index % ph;
+    index /= ph;
+    int ci = index;
+    if (wi < p || wi >= pw - p || hi < p || hi >= ph - p) Y[ci*ph*pw+hi*pw+wi] = 0;
+    else Y[ci*ph*pw+hi*pw+wi] = X[ci*h*w+(hi-p)*w+(wi-p)];
 }
 
-void add_bias_gpu(float *output, float *biases, int batch, int n, int size) {
-    int num = n*size*batch;
-    add_bias_kernel<<<cuda_gridsize(num), BLOCK>>>(output, biases, batch, n, size);
+void padding_gpu(float* X, int w, int h, int c, int p, float* Y) {
+    int pw = w + 2 * p;
+    int ph = h + 2 * p;
+    padding_kernel<<<cuda_gridsize(ph*pw*c), BLOCK>>>(X, w, h, c, p, Y);
+    check_error(cudaPeekAtLastError());
+}
+
+__global__ void unrolling_kernel(float* X, int w, int h, int c, int k, int s, float* Y) {
+    int index = (blockIdx.x + blockIdx.y*gridDim.x) * blockDim.x + threadIdx.x;
+    int yw = (w - k) / s + 1;
+    int yh = (h - k) / s + 1;
+    if (i >= yw*yh*k*k*c) return;
+    int kj = index % k;
+    index /= k;
+    int ki = index % k;
+    index /= k;
+    int ci = index % c;
+    index /= c;
+    int wi = index % yw;
+    index /= yw;
+    int hi = index
+    Y[(hi*yw+wi)*c*k*k+ci*k*k+ki*k+kj] = x[ci*h*w+(hi*s+ki)*w+wi*s+kj];
+}
+
+void unrolling_gpu(float* X, int w, int h, int c, int k, int s, float* Y) {
+    int yw = (w - k) / s + 1;
+    int yh = (h - k) / s + 1;
+
+    unrolling_kernel<<<cuda_gridsize(yh*yw*k*k*c), BLOCK>>>(X, w, h, c, k, s, Y);
     check_error(cudaPeekAtLastError());
 }
