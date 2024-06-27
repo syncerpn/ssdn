@@ -300,37 +300,6 @@ int main() {
 		}
 	}
 	std::cout << std::endl;
-	float* x_padded = padding(x, xw, xh, c, p);
-	int xpw = xw + 2 * p;
-	int xph = xh + 2 * p;
-
-	for (int ic = 0; ic < c; ++ic) {
-		for (int ih = 0; ih < xph; ++ih) {
-			for (int iw = 0; iw < xpw; ++iw) {
-				std::cout << x_padded[ic*xph*xpw+ih*xpw+iw] << " ";
-			}
-			std::cout << std::endl;
-		}
-	}
-	std::cout << std::endl;
-
-	float* x_mat = unroll(x_padded, xpw, xph, c, k, s);
-
-	int yw = (xpw - k) / s + 1;
-	int yh = (xph - k) / s + 1;
-
-	int y_size = yw * yh;
-	int f_size = k * k * c;
-
-	for (int hi = 0; hi < yh; ++hi) {
-		for (int wi = 0; wi < yw; ++wi) {
-			for (int kki = 0; kki < c*k*k; ++kki) {
-				std::cout << x_mat[(hi*yw+wi)*k*k*c + kki] << " ";
-			}
-			std::cout << std::endl;
-		}
-	}
-	std::cout << std::endl;
 
 	float* w = new float[f_size * n];
 	for (int i = 0; i < f_size * n; ++i) {
@@ -339,31 +308,15 @@ int main() {
 	}
 	std::cout << std::endl << std::endl;
 
-	float* w_mat_r = new float[f_size * n * y_size];
-	tile_repeat(f_size * n, f_size, y_size, w, 1, w_mat_r, 1);
-	float* x_mat_r = new float[y_size * f_size * n];
-	tile_repeat(f_size * y_size, f_size * y_size, n, x_mat, 1, x_mat_r, 1);
-
-	for (int i = 0; i < y_size * n; ++i) {
-		for (int j = 0; j < f_size; ++j) {
-			std::cout << x_mat_r[i*f_size+j] << " ";
-		}
-		std::cout << std::endl;
+	float* b = new float[n];
+	for (int i = 0; i < n; ++i) {
+		b[i] = (float)i / 3;
+		std::cout << b[i] << " ";
 	}
-	std::cout << std::endl;
 
-	for (int i = 0; i < y_size * n; ++i) {
-		for (int j = 0; j < f_size; ++j) {
-			std::cout << w_mat_r[i*f_size+j] << " ";
-		}
-		std::cout << std::endl;
-	}
-	std::cout << std::endl;
-
-	mul_cpu(f_size * n * y_size, w_mat_r, 1, x_mat_r, 1);
-
-	float* y = new float[y_size];
-	accumulate_cpu(y_size * n, f_size, x_mat_r, 1, y, 1);
+	int yw, yh, yn;
+	int ldesc[5] = {c, n, k, s, p}
+	float* y = conv2d(x, xw, xh, w, b, ldesc, 0, 0, yw, yh, yn);
 
 	for (int ni = 0; ni < n; ++ni) {
 		for (int hi = 0; hi < yh; ++hi) {
