@@ -221,7 +221,7 @@ void run_sim_fast_approx_ma() {
 
 		fclose(f);
 
-		float psnr = forward(im, imw, imh, gt, gtw, gth, layers, weights, biases, wq_steps, xq_steps);
+		float psnr = forward(im, imw, imh, gt, gtw, gth, layers, 8, weights, biases, wq_steps, xq_steps);
 
 		delete[] im;
 		delete[] gt;
