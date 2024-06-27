@@ -137,9 +137,9 @@ float forward(float* im, int imw, int imh,
 	for (int li = 0; li < n_layer; ++li) {
 		std::cout << "[INFO] layer " << li;
 		z = conv2d(x, xw, xh, weights[li], biases[li], layers[li], xq_steps[li], wq_steps[li], zw, zh, zn);
-		// if (li > 0) {
-		// 	delete[] x;
-		// }
+		if (li > 0) {
+			delete[] x;
+		}
 		if (li != n_layer-1) {
 			min_cpu(zw*zh*zn, 0, z, 1);
 		}
@@ -224,7 +224,8 @@ void run_sim_fast_approx_ma() {
 	}
 
 	// load images
-	for (int i = 0; i < 1; ++i) {
+	float psnr_mean = 0;
+	for (int i = 0; i < 14; ++i) {
 		std::string data_file_name;
 		FILE* f;
 		float wf, hf;
@@ -258,12 +259,13 @@ void run_sim_fast_approx_ma() {
 		fclose(f);
 
 		float psnr = forward(im, imw, imh, gt, gtw, gth, layers, 8, weights, biases, wq_steps, xq_steps);
-
+		psnr_mean += psnr;
 		std::cout << psnr << std::endl;
 
 		delete[] im;
 		delete[] gt;
 	}
+	std::cout << psnr_mean / 14 << std::endl;
 
 	for (int i = 0; i < 8; ++i) {
 		delete[] weights[i];
