@@ -160,13 +160,6 @@ float forward(float* im, int imw, int imh,
 		}
 	}
 
-	for (int hi = 0; hi < 2*zh; ++hi) {
-		for (int wi = 0; wi < 2*zw; ++wi) {
-			std::cout << z_im[hi*2*zw+wi] << " ";
-		}
-		std::cout << std::endl;
-	}
-
 	axpy_cpu(gtw*gth, -1, gt, 1, z_im, 1);
 	pow_cpu(gtw*gth, 2, z_im, 1);
 	float sum = 0;
