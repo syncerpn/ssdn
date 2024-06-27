@@ -77,7 +77,7 @@ float* unroll(float* x, int xw, int xh, int c, int k, int s) {
 	return x_mat;
 }
 
-float* conv2d(float* x, int xw, int xh, float* w, float* b, int* desc, float xq_step, float wq_step, int& yw, int& yh) {
+float* conv2d(float* x, int xw, int xh, float* w, float* b, int* desc, float xq_step, float wq_step, int& yw, int& yh, int& yn) {
 	int c = desc[0];
 	int n = desc[1];
 	int k = desc[2];
@@ -91,6 +91,7 @@ float* conv2d(float* x, int xw, int xh, float* w, float* b, int* desc, float xq_
 	float* x_mat = unroll(x_padded, xpw, xph, c, k, s);
 	yw = (xpw - k) / s + 1;
 	yh = (xph - k) / s + 1;
+	yn = n;
 
 	int y_size = yw * yh;
 	int f_size = k * k * c;
@@ -131,7 +132,7 @@ float forward(float* im, int imw, int imh,
 
 	for (int li = 0; li < n_layer; ++li) {
 		int zw, zh, zn;
-		float* z = conv2d(x, xw, xh, weights[li], biases[li], layers[li], xq_steps[li], wq_steps[li], int& zw, int& zh, int& zn);
+		float* z = conv2d(x, xw, xh, weights[li], biases[li], layers[li], xq_steps[li], wq_steps[li], zw, zh, zn);
 		if (li > 0) {
 			delete[] x;
 		}
