@@ -315,7 +315,7 @@ int main() {
 	}
 
 	int yw, yh, yn;
-	int ldesc[5] = {c, n, k, s, p}
+	int ldesc[5] = {c, n, k, s, p};
 	float* y = conv2d(x, xw, xh, w, b, ldesc, 0, 0, yw, yh, yn);
 
 	for (int ni = 0; ni < n; ++ni) {
