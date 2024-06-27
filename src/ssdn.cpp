@@ -145,6 +145,13 @@ float forward(float* im, int imw, int imh,
 		xw = zw;
 		xh = zh;
 		std::cout << " done" << std::endl;
+
+		for (int hi = 0; hi < zh; ++hi) {
+			for (int wi = 0; wi < zw; ++wi) {
+				std::cout << z[hi*zw+wi] << " ";
+			}
+			std::cout << std::endl;
+		}
 	}
 
 	float* z_im = new float[zw*zh*zn];
