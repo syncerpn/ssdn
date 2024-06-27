@@ -153,7 +153,7 @@ __global__ void padding_kernel(float* X, int w, int h, int c, int p, float* Y) {
     int index = (blockIdx.x + blockIdx.y*gridDim.x) * blockDim.x + threadIdx.x;
     int pw = w + 2 * p;
     int ph = h + 2 * p;
-    if (i >= pw*ph*c) return;
+    if (index >= pw*ph*c) return;
     int wi = index % pw;
     index /= pw;
     int hi = index % ph;
@@ -174,7 +174,7 @@ __global__ void unrolling_kernel(float* X, int w, int h, int c, int k, int s, fl
     int index = (blockIdx.x + blockIdx.y*gridDim.x) * blockDim.x + threadIdx.x;
     int yw = (w - k) / s + 1;
     int yh = (h - k) / s + 1;
-    if (i >= yw*yh*k*k*c) return;
+    if (index >= yw*yh*k*k*c) return;
     int kj = index % k;
     index /= k;
     int ki = index % k;
