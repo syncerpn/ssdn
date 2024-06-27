@@ -45,26 +45,22 @@ float quantize(float x, float step, int nbit, bool sign) {
 	return raw_q > pos_end ? pos_end : (raw_q < neg_end ? neg_end : raw_q);
 }
 
-float* padding(float* x, int xw, int xh, int c, int p) {
+void padding(float* x, int xw, int xh, int c, int p, float* xp) {
 	int xpw = xw + 2 * p;
 	int xph = xh + 2 * p;
-	float* xp = cuda_make_array(0, xpw * xph * c);
 	for (int ci = 0; ci < c; ++ci) {
 		for (int i = p; i < xph - p; ++i) {
 			copy_gpu(xw, x+ci*xh*xw+(i-p)*xw, 1, xp+ci*xph*xpw+i*xpw+p, 1);
 		}
 	}
-	return xp;
 }
 
-float* unroll(float* x, int xw, int xh, int c, int k, int s) {
+void unroll(float* x, int xw, int xh, int c, int k, int s, float* x_mat) {
 	int yw = (xw - k) / s + 1;
 	int yh = (xh - k) / s + 1;
 
 	int y_size = yw * yh;
 	int f_size = k * k * c;
-
-	float* x_mat = cuda_make_array(0, y_size * f_size);
 
 	for (int hi = 0; hi < yh; ++hi) {
 		for (int wi = 0; wi < yw; ++wi) {
@@ -78,18 +74,30 @@ float* unroll(float* x, int xw, int xh, int c, int k, int s) {
 	return x_mat;
 }
 
-float* conv2d(float* x, int xw, int xh, float* w, float* b, int* desc, float xq_step, float wq_step, int& yw, int& yh, int& yn) {
+void conv2d(float* x, int xw, int xh,
+	float* w, float* b, int* desc,
+	float xq_step, float wq_step,
+	int& yw, int& yh, int& yn,
+	float** workspace) {
+
 	int c = desc[0];
 	int n = desc[1];
 	int k = desc[2];
 	int s = desc[3];
 	int p = desc[4];
 
-	float* x_padded = padding(x, xw, xh, c, p);
+	float* x_padded = workspace[0];
+	float* x_mat = workspace[1];
+	float* x_mat_r = workspace[2];
+	float* w_mat_r = workspace[3];
+	float* b_mat_r = workspace[4];
+	float* y = workspace[5];
+
+	padding(x, xw, xh, c, p, x_padded);
 	int xpw = xw + 2 * p;
 	int xph = xh + 2 * p;
 
-	float* x_mat = unroll(x_padded, xpw, xph, c, k, s);
+	unroll(x_padded, xpw, xph, c, k, s, x_mat);
 	yw = (xpw - k) / s + 1;
 	yh = (xph - k) / s + 1;
 	yn = n;
@@ -97,48 +105,28 @@ float* conv2d(float* x, int xw, int xh, float* w, float* b, int* desc, float xq_
 	int y_size = yw * yh;
 	int f_size = k * k * c;
 
-	float* x_mat_r = cuda_make_array(0, y_size * f_size * n);
 	tile_repeat_gpu(f_size * y_size, f_size * y_size, n, x_mat, 1, x_mat_r, 1);
-
-	float* w_mat_r = cuda_make_array(0, f_size * n * y_size);
 	tile_repeat_gpu(f_size * n, f_size, y_size, w, 1, w_mat_r, 1);
-
-	mul_gpu(f_size * n * y_size, w_mat_r, 1, x_mat_r, 1);
-
-	float* y = cuda_make_array(0, y_size * n);
-	accumulate_gpu(y_size * n, f_size, x_mat_r, 1, y, 1);
-
-	float* b_mat_r = cuda_make_array(0, y_size * n);
 	tile_repeat_gpu(n, 1, y_size, b, 1, b_mat_r, 1);
-
+	mul_gpu(f_size * n * y_size, w_mat_r, 1, x_mat_r, 1);
+	accumulate_gpu(y_size * n, f_size, x_mat_r, 1, y, 1);
 	axpy_gpu(y_size * n, 1, b_mat_r, 1, y, 1);
-
-	cuda_free(x_padded);
-	cuda_free(x_mat);
-	cuda_free(x_mat_r);
-	cuda_free(w_mat_r);
-	cuda_free(b_mat_r);
-
-	return y;
 }
 
 float forward(float* im, int imw, int imh,
 	float* gt, int gtw, int gth,
 	int** layers, int n_layer, float** weights, float** biases,
-	float* wq_steps, float* xq_steps) {
+	float* wq_steps, float* xq_steps, float** workspace) {
 
 	float* x = im;
 	int xw = imw;
 	int xh = imh;
 
 	int zw, zh, zn;
-	float* z;
+	float* z = workspace[5];
 	for (int li = 0; li < n_layer; ++li) {
 		std::cout << "[INFO] layer " << li;
-		z = conv2d(x, xw, xh, weights[li], biases[li], layers[li], xq_steps[li], wq_steps[li], zw, zh, zn);
-		if (li > 0) {
-			cuda_free(x);
-		}
+		conv2d(x, xw, xh, weights[li], biases[li], layers[li], xq_steps[li], wq_steps[li], zw, zh, zn, workspace);
 		if (li != n_layer-1) {
 			min_gpu(zw*zh*zn, 0, z, 1);
 		}
@@ -194,8 +182,20 @@ void run_sim_fast_approx_ma() {
 	float wq_steps[8] = {1.0/(1<<10), 1.0/(1<<8), 1.0/(1<<10), 1.0/(1<<10), 1.0/(1<<10), 1.0/(1<<10), 1.0/(1<<8), 0.0};
 	float xq_steps[8] = {1.0/(1<< 8), 1.0/(1<<8), 1.0/(1<< 8), 1.0/(1<< 8), 1.0/(1<< 8), 1.0/(1<< 8), 1.0/(1<<8), 0.0};
 
+	const int H_MAX = 512;
+	const int W_MAX = 512;
+	const int N_MAX = 64
+	const int K_MAX = 3
+
 	float** weights = new float*[8];
 	float** biases = new float*[8];
+	float** workspace = new float*[6];
+	workspace[0] = cuda_make_array(0, H_MAX * W_MAX * N_MAX); // x_padded
+	workspace[1] = cuda_make_array(0, H_MAX * W_MAX * N_MAX * K_MAX * K_MAX); // x_mat
+	workspace[2] = cuda_make_array(0, H_MAX * W_MAX * N_MAX * K_MAX * K_MAX * N_MAX); // x_mat_r
+	workspace[3] = cuda_make_array(0, H_MAX * W_MAX * N_MAX * K_MAX * K_MAX * N_MAX); // w_mat_r
+	workspace[4] = cuda_make_array(0, H_MAX * W_MAX * N_MAX); // b_mat_r
+	workspace[5] = cuda_make_array(0, H_MAX * W_MAX * N_MAX); // y
 
 	// load model
 	for (int i = 0; i < 8; ++i) {
@@ -221,6 +221,14 @@ void run_sim_fast_approx_ma() {
 		delete[] _weight;
 
 		fclose(f);
+
+		workspace[i] = new float*[10];
+		workspace[i][0] = cuda_make_array(0, H_MAX * W_MAX * c); // x_padded
+		workspace[i][1] = cuda_make_array(0, H_MAX * W_MAX * c * k * k); // x_mat
+		workspace[i][2] = cuda_make_array(0, H_MAX * W_MAX * c * k * k * n); // x_mat_r
+		workspace[i][3] = cuda_make_array(0, H_MAX * W_MAX * c * k * k * n); // w_mat_r
+		workspace[i][4] = cuda_make_array(0, H_MAX * W_MAX * n); // y
+		workspace[i][5] = cuda_make_array(0, H_MAX * W_MAX * n); // b_mat_r
 	}
 
 	// load images
@@ -265,14 +273,15 @@ void run_sim_fast_approx_ma() {
 		fclose(f);
 
 		// forwarding
-		float psnr = forward(im, imw, imh, gt, gtw, gth, layers, 8, weights, biases, wq_steps, xq_steps);
+		float psnr = forward(im, imw, imh, gt, gtw, gth, layers, 8, weights, biases, wq_steps, xq_steps, workspace);
 		psnr_mean += psnr;
 		std::cout << psnr << std::endl;
 
-		delete[] im;
-		delete[] gt;
 	}
 	std::cout << psnr_mean / 14 << std::endl;
+
+	cuda_free(im);
+	cuda_free(gt);
 
 	for (int i = 0; i < 8; ++i) {
 		cuda_free(weights[i]);
