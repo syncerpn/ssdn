@@ -175,7 +175,7 @@ float forward(float* im, int imw, int imh,
 		accumulate_cpu(1, gtw-4, z_im+hi*gtw+2, 1, &t, 1);
 		sum += t;
 	}
-	float mean = sum / ((zh-4)*(zw-4));
+	float mean = sum / ((gth-4)*(gtw-4));
 
 	delete[] z;
 	delete[] z_im;
