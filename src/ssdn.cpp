@@ -130,10 +130,11 @@ float forward(float* im, int imw, int imh,
 	int xw = imw;
 	int xh = imh;
 
+	int zw, zh, zn;
+	float* z;
 	for (int li = 0; li < n_layer; ++li) {
 		std::cout << "[INFO] layer " << li;
-		int zw, zh, zn;
-		float* z = conv2d(x, xw, xh, weights[li], biases[li], layers[li], xq_steps[li], wq_steps[li], zw, zh, zn);
+		z = conv2d(x, xw, xh, weights[li], biases[li], layers[li], xq_steps[li], wq_steps[li], zw, zh, zn);
 		if (li > 0) {
 			delete[] x;
 		}
@@ -141,12 +142,36 @@ float forward(float* im, int imw, int imh,
 			min_cpu(zw*zh*zn, 0, z, 1);
 		}
 		x = z;
+		xw = zw;
+		xh = zh;
 		std::cout << " done" << std::endl;
 	}
 
-	delete[] x;
+	float* z_im = new float[zw*zh*zn];
+	for (int ni = 0; ni < 4; ++ni) {
+		int nhi = ni / 2;
+		int nwi = ni % 2;
+		for (int hi = 0; hi < zh; ++hi) {
+			for (int wi = 0; wi < zw; ++wi) {
+				z_im[(hi*2+nhi)*zw*2+wi*2+nwi] = im[(hi*2+nhi)*zw*2+wi*2+nwi] + z[ni*zh*zw+hi*zw+wi];
+			}
+		}
+	}
 
-	return 0;
+	axpy_cpu(zh*zw*4, -1, gt, 1, z_im, 1);
+	pow_cpu(zh*zw*4, 2, z_im, 1);
+	float sum = 0;
+	for (int hi = 2; hi < zh - 2; ++hi) {
+		float t = 0;
+		accumulate_cpu(1, zw-4, z_im+hi*zw+2, 1, &t, 1);
+		sum += t;
+	}
+	float mean = sum / ((zh-4)*(zw-4));
+
+	delete[] z;
+	delete[] z_im;
+
+	return -10 * math.log10(mean);
 }
 
 void run_sim_fast_approx_ma() {
