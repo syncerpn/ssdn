@@ -161,7 +161,6 @@ float forward(float* im, int imw, int imh,
 	float mean = sum / ((gth-4)*(gtw-4));
 
 	cuda_free(t);
-	cuda_free(z);
 	cuda_free(z_im);
 
 	return -10 * log10(mean);
