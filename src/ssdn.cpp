@@ -45,7 +45,62 @@ float quantize(float x, float step, int nbit, bool sign) {
 	return raw_q > pos_end ? pos_end : (raw_q < neg_end ? neg_end : raw_q);
 }
 
-float forward(float* x, float* y, int** layers, float* weights, float* biases, float* wq_steps, float* xq_steps) {
+float* padding(float* x, int xw, int xh, int p) {
+	int xpw = xw + 2 * p;
+	int xph = xh + 2 * p;
+	float* xp = new float[xpw * xph];
+	fill_cpu(xpw * xph, 0, xp, 1);
+	for (int i = 1; i < xph - 1; ++i) {
+		copy_cpu(xw, x+(i-1)*xw, 1, xp+i*xpw+p, 1);
+	}
+	return xp;
+}
+
+float* unroll(float* x, int xw, int xh, int c, int k, int s) {
+	int yw = (xw - k) / s + 1;
+	int yh = (xh - k) / s + 1;
+
+	int y_size = yw * yh;
+	int f_size = k * k * c;
+
+	float* x_mat = new float[yw * yh * f_size];
+
+	for (int hi = 0; hi < yh; ++hi) {
+		for (int wi = 0; wi < yw; ++wi) {
+			for (int ci = 0; ci < c; ++ci) {
+				for (int ki = 0; ki < k; ++ki) {
+					copy_cpu(k, x+ci*xh*xw+(hi*s+ki)*xw+wi*s, 1, x_mat+(hi*yw+wi)*k*k*c+ci*k*k+ki*k, 1);
+				}
+			}
+		}
+	}
+	return x_mat
+}
+
+void conv2d(float* x, int xw, int xh, float* w, float* b, int* desc, float xq_step, float wq_step) {
+	int c = desc[0];
+	int n = desc[1];
+	int k = desc[2];
+	int s = desc[3];
+	int p = desc[4];
+
+	float* x_padded = padding(x, xw, xh, p);
+	int xpw = xw + 2 * p;
+	int xph = xh + 2 * p;
+
+	float* x_mat = unroll(x_padded, xpw, xph, c, k, s);
+
+	delete[] x_padded;
+	delete[] x_mat;
+}
+
+float forward(float* x, int xw, int xh,
+	float* y, int yw, int yh,
+	int** layers, float* weights, float* biases,
+	float* wq_steps, float* xq_steps) {
+
+
+
 	return 0;
 }
 
@@ -91,10 +146,13 @@ void run_sim_fast_approx_ma() {
 
 	// load images
 	for (int i = 0; i < 1; ++i) {
-		std::string data_file_name = "./data/imd_" + std::to_string(i);
-		FILE* f = fopen(data_file_name.c_str(), "r");
-		
+		std::string data_file_name;
+		FILE* f;
 		float wf, hf;
+		
+		data_file_name = "./data/imd_" + std::to_string(i);
+		f = fopen(data_file_name.c_str(), "r");
+		
 		fread(&wf, sizeof(float), 1, f);
 		fread(&hf, sizeof(float), 1, f);
 		int imw = int(wf);
@@ -118,12 +176,10 @@ void run_sim_fast_approx_ma() {
 		float* gt = new float[gt_size];
 		fread(gt, sizeof(float), gt_size, f);
 
-		std::cout << wf << " " << hf << std::endl;
-		for (int j = 0; j < 20; ++j) {
-			std::cout << gt[j] << std::endl;
-		}
-
 		fclose(f);
+
+		float psnr = forward(im, imw, imh, gt, gtw, gth, layers, weights, biases, wq_steps, xq_steps);
+
 		delete[] im;
 		delete[] gt;
 	}
@@ -137,6 +193,55 @@ void run_sim_fast_approx_ma() {
 }
 
 int main() {
-	run_sim_fast_approx_ma();
+	// run_sim_fast_approx_ma();
+	int xw = 5;
+	int xh = 4;
+	int c = 1;
+	int k = 3;
+	int p = 1;
+	int s = 1
+	float* x = new float[xw * xh * c];
+	for (int ic = 0; ic < c; ++ic) {
+		for (int ih = 0; ih < xh; ++ih) {
+			for (int iw = 0; iw < xw; ++iw) {
+				x[ic*xh*xw+ih*xw+iw] = ic*xh*xw+ih*xw+iw;
+				std::cout << x[ic*xh*xw+ih*xw+iw] << " ";
+			}
+			std::cout << std::endl;
+		}
+	}
+	float* x_padded = padding(x, xw, xh, p);
+	int xpw = xw + 2 * p;
+	int xph = xh + 2 * p;
+
+	for (int ic = 0; ic < c; ++ic) {
+		for (int ih = 0; ih < xph; ++ih) {
+			for (int iw = 0; iw < xpw; ++iw) {
+				std::cout << x_padded[ic*xph*xpw+ih*xpw+iw] << " ";
+			}
+			std::cout << std::endl;
+		}
+	}
+
+	float* x_mat = unroll(x_padded, xpw, xph, c, k, s);
+
+	int yw = (xpw - k) / s + 1;
+	int yh = (xph - k) / s + 1;
+
+	int y_size = yw * yh;
+	int f_size = k * k * c;
+
+	for (int hi = 0; hi < yh; ++hi) {
+		for (int wi = 0; wi < yw; ++wi) {
+			for (int kki = 0; kki < c*k*k; ++kki) {
+				std::cout << x_mat[(hi*yw+wi)*k*k*c + kki] << " ";
+			}
+			std::cout << std::endl;
+		}
+	}
+
+	delete[] x;
+	delete[] x_padded;
+	delete[] x_mat;
 	return 0;
 }
