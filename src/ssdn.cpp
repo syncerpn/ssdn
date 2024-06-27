@@ -96,7 +96,7 @@ void conv2d(float* x, int xw, int xh, float* w, float* b, int* desc, float xq_st
 
 float forward(float* x, int xw, int xh,
 	float* y, int yw, int yh,
-	int** layers, float* weights, float* biases,
+	int*[] layers, float* weights, float* biases,
 	float* wq_steps, float* xq_steps) {
 
 
