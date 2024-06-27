@@ -324,7 +324,7 @@ int main() {
 	float* x_gpu = cuda_make_array(x, xw*xh*c);
 	float* x_padded = new float[(xw+2*p)*(xh+2*p)*c];
 	float* x_padded_gpu = cuda_make_array(0, (xw+2*p)*(xh+2*p)*c);
-	padding_gpu(x_gpu, xw, int xh, c, p, x_padded_gpu);
+	padding_gpu(x_gpu, xw, xh, c, p, x_padded_gpu);
 	cuda_pull_array(x_padded_gpu, x_padded, (xw+2*p)*(xh+2*p)*c);
 	for (int ic = 0; ic < c; ++ic) {
 		for (int ih = 0; ih < xh+2*p; ++ih) {
