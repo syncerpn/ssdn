@@ -276,15 +276,15 @@ int main() {
 	mul_cpu(f_size * n * y_size, w_mat_r, 1, x_mat_r, 1);
 
 	float* y = new float[y_size];
-	// accumulate_cpu(y_size, f_size, x_mat, 1, y, 1);
+	accumulate_cpu(y_size, f_size, x_mat, 1, y, 1);
 
-	// for (int hi = 0; hi < yh; ++hi) {
-	// 	for (int wi = 0; wi < yw; ++wi) {
-	// 		std::cout << y[hi*yw+wi] << " ";
-	// 	}
-	// 	std::cout << std::endl;
-	// }
-	// std::cout << std::endl;
+	for (int hi = 0; hi < yh; ++hi) {
+		for (int wi = 0; wi < yw; ++wi) {
+			std::cout << y[hi*yw+wi] << " ";
+		}
+		std::cout << std::endl;
+	}
+	std::cout << std::endl;
 
 	delete[] x;
 	delete[] x_padded;
