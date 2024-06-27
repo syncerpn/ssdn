@@ -31,6 +31,14 @@ void copy_cpu(int N, float *X, int INCX, float *Y, int INCY) {
 	}
 }
 
+void accumulate_cpu(int N, int K, float *X, int INCX, float *Y, int INCY) {
+	for (int i = 0; i < N; ++i) {
+		for (int j = 0; j < K; ++j) {
+			Y[i*INCY] += X[(i*K+j)*INCX];
+		}
+	}
+}
+
 void add_cpu(int N, float ALPHA, float *X, int INCX, float *Y, int INCY) {
 	if (Y == 0) {
 		Y = X;

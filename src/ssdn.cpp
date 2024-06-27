@@ -243,8 +243,8 @@ int main() {
 	}
 	std::cout << std::endl;
 
-	float* w = new float[9];
-	for (int i = 0; i < 9; ++i) {
+	float* w = new float[f_size];
+	for (int i = 0; i < f_size; ++i) {
 		w[i] = (float)i / 2;
 		std::cout << w[i] << " ";
 	}
@@ -262,10 +262,23 @@ int main() {
 			std::cout << std::endl;
 		}
 	}
+	std::cout << std::endl;
+
+	float* y = new float[y_size];
+	accumulate_cpu(y_size, f_size, x_mat, 1, y, 1);
+
+	for (int hi = 0; hi < yh; ++hi) {
+		for (int wi = 0; wi < yw; ++wi) {
+			std::cout << y[hi*yw+wi] << " ";
+		}
+		std::cout << std::endl;
+	}
+	std::cout << std::endl;
 
 	delete[] x;
 	delete[] x_padded;
 	delete[] x_mat;
 	delete[] w;
+	delete[] y;
 	return 0;
 }
