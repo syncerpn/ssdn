@@ -135,16 +135,17 @@ float forward(float* im, int imw, int imh,
 		std::cout << " done" << std::endl;
 	}
 
-	float* z_im = new float[zw*zh*zn]();
-	for (int ni = 0; ni < 4; ++ni) {
-		int nhi = ni / 2;
-		int nwi = ni % 2;
-		for (int hi = 0; hi < zh; ++hi) {
-			for (int wi = 0; wi < zw; ++wi) {
-				z_im[(hi*2+nhi)*zw*2+wi*2+nwi] = im[hi*zw+wi] + z[ni*zh*zw+hi*zw+wi];
-			}
-		}
-	}
+	float* z_im = cuda_make_array(0, zw*zh*zn);
+	flatten_arrange_gpu(im, z, zw, zh, 2, z_im);
+	// for (int ni = 0; ni < 4; ++ni) {
+	// 	int nhi = ni / 2;
+	// 	int nwi = ni % 2;
+	// 	for (int hi = 0; hi < zh; ++hi) {
+	// 		for (int wi = 0; wi < zw; ++wi) {
+	// 			z_im[(hi*2+nhi)*zw*2+wi*2+nwi] = im[hi*zw+wi] + z[ni*zh*zw+hi*zw+wi];
+	// 		}
+	// 	}
+	// }
 
 	axpy_gpu(gtw*gth, -1, gt, 1, z_im, 1);
 	pow_gpu(gtw*gth, 2, z_im, 1);

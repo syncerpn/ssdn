@@ -37,6 +37,7 @@ void max_gpu(int N, float MAX, float *X, int INCX=1, float *Y=0, int INCY=1);
 
 void padding_gpu(float* X, int w, int h, int c, int p, float* Y);
 void unrolling_gpu(float* X, int w, int h, int c, int k, int s, float* Y);
+void flatten_arrange_gpu(float* X, float* Z, int w, int h, int s, float* Y);
 
 // blas.cpp
 void fill_cpu(int N, float ALPHA, float *X, int INCX);

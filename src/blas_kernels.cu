@@ -194,3 +194,21 @@ void unrolling_gpu(float* X, int w, int h, int c, int k, int s, float* Y) {
     unrolling_kernel<<<cuda_gridsize(yh*yw*k*k*c), BLOCK>>>(X, w, h, c, k, s, Y);
     check_error(cudaPeekAtLastError());
 }
+
+__global__ void flatten_arrange_kernel(float* X, float* Z, int w, int h, int s, float* Y) {
+    int index = (blockIdx.x + blockIdx.y*gridDim.x) * blockDim.x + threadIdx.x;
+    if (index >= w*h*s*s) return;
+    int sj = index % s;
+    index /= s;
+    int si = index % s;
+    index /= s;
+    int wi = index % w;
+    index /= w;
+    int hi = index;
+    Y[(hi*s+si)*w*s+wi*s+sj] = X[hi*w+wi] + Z[(si*s+sj)*h*w+hi*w+wi];
+}
+
+void flatten_arrange_gpu(float* X, float* Z, int w, int h, int s, float* Y) {
+    flatten_arrange_kernel<<<cuda_gridsize(w*h*s*s), BLOCK>>>(X, Z, w, h, s, Y);
+    check_error(cudaPeekAtLastError());
+}
