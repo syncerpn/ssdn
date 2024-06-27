@@ -183,7 +183,7 @@ __global__ void unrolling_kernel(float* X, int w, int h, int c, int k, int s, fl
     index /= c;
     int wi = index % yw;
     index /= yw;
-    int hi = index
+    int hi = index;
     Y[(hi*yw+wi)*c*k*k+ci*k*k+ki*k+kj] = x[ci*h*w+(hi*s+ki)*w+wi*s+kj];
 }
 
