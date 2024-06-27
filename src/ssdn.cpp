@@ -155,7 +155,7 @@ float forward(float* im, int imw, int imh,
 		int nwi = ni % 2;
 		for (int hi = 0; hi < zh; ++hi) {
 			for (int wi = 0; wi < zw; ++wi) {
-				z_im[(hi*2+nhi)*zw*2+wi*2+nwi] = im[(hi*2+nhi)*zw*2+wi*2+nwi] + z[ni*zh*zw+hi*zw+wi];
+				z_im[(hi*2+nhi)*zw*2+wi*2+nwi] = im[hi*zw+wi] + z[ni*zh*zw+hi*zw+wi];
 			}
 		}
 	}
