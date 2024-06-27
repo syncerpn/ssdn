@@ -245,8 +245,10 @@ int main() {
 
 	float* w = new float[9];
 	for (int i = 0; i < 9; ++i) {
-		w[i] = i / 2;
+		w[i] = (float)i / 2;
+		std::cout << w[i] << " ";
 	}
+	std::cout << std::endl;
 
 	for (int i = 0; i < y_size; ++i) {
 		mul_cpu(f_size, w, 1, x_mat+i*f_size, 1);
