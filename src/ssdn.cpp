@@ -48,8 +48,8 @@ float quantize(float x, float step, int nbit, bool sign) {
 float* padding(float* x, int xw, int xh, int c, int p) {
 	int xpw = xw + 2 * p;
 	int xph = xh + 2 * p;
-	float* xp = new float[xpw * xph * c];
-	fill_cpu(xpw * xph * c, 0, xp, 1);
+	float* xp = new float[xpw * xph * c]();
+	// fill_cpu(xpw * xph * c, 0, xp, 1);
 	for (int ci = 0; ci < c; ++ci) {
 		for (int i = p; i < xph - p; ++i) {
 			copy_cpu(xw, x+ci*xh*xw+(i-p)*xw, 1, xp+ci*xph*xpw+i*xpw+p, 1);
@@ -65,7 +65,7 @@ float* unroll(float* x, int xw, int xh, int c, int k, int s) {
 	int y_size = yw * yh;
 	int f_size = k * k * c;
 
-	float* x_mat = new float[y_size * f_size];
+	float* x_mat = new float[y_size * f_size]();
 
 	for (int hi = 0; hi < yh; ++hi) {
 		for (int wi = 0; wi < yw; ++wi) {
@@ -98,18 +98,18 @@ float* conv2d(float* x, int xw, int xh, float* w, float* b, int* desc, float xq_
 	int y_size = yw * yh;
 	int f_size = k * k * c;
 
-	float* x_mat_r = new float[y_size * f_size * n];
+	float* x_mat_r = new float[y_size * f_size * n]();
 	tile_repeat(f_size * y_size, f_size * y_size, n, x_mat, 1, x_mat_r, 1);
 
-	float* w_mat_r = new float[f_size * n * y_size];
+	float* w_mat_r = new float[f_size * n * y_size]();
 	tile_repeat(f_size * n, f_size, y_size, w, 1, w_mat_r, 1);
 
 	mul_cpu(f_size * n * y_size, w_mat_r, 1, x_mat_r, 1);
 
-	float* y = new float[y_size * n];
+	float* y = new float[y_size * n]();
 	accumulate_cpu(y_size * n, f_size, x_mat_r, 1, y, 1);
 
-	float* b_mat_r = new float[y_size * n];
+	float* b_mat_r = new float[y_size * n]();
 	tile_repeat(n, 1, y_size, b, 1, b_mat_r, 1);
 
 	axpy_cpu(y_size * n, 1, b_mat_r, 1, y, 1);
@@ -162,7 +162,7 @@ float forward(float* im, int imw, int imh,
 		}
 	}
 
-	float* z_im = new float[zw*zh*zn];
+	float* z_im = new float[zw*zh*zn]();
 	for (int ni = 0; ni < 4; ++ni) {
 		int nhi = ni / 2;
 		int nwi = ni % 2;
