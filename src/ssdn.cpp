@@ -45,13 +45,15 @@ float quantize(float x, float step, int nbit, bool sign) {
 	return raw_q > pos_end ? pos_end : (raw_q < neg_end ? neg_end : raw_q);
 }
 
-float* padding(float* x, int xw, int xh, int p) {
+float* padding(float* x, int xw, int xh, int c, int p) {
 	int xpw = xw + 2 * p;
 	int xph = xh + 2 * p;
-	float* xp = new float[xpw * xph];
-	fill_cpu(xpw * xph, 0, xp, 1);
-	for (int i = 1; i < xph - 1; ++i) {
-		copy_cpu(xw, x+(i-1)*xw, 1, xp+i*xpw+p, 1);
+	float* xp = new float[xpw * xph * c];
+	fill_cpu(xpw * xph * c, 0, xp, 1);
+	for (int ci = 0; ci < c; ++ci) {
+		for (int i = 1; i < xph - 1; ++i) {
+			copy_cpu(xw, x+ci*xh*xw+(i-1)*xw, 1, xp+ci*xph*xpw+i*xpw+p, 1);
+		}
 	}
 	return xp;
 }
@@ -84,7 +86,7 @@ float* conv2d(float* x, int xw, int xh, float* w, float* b, int* desc, float xq_
 	int s = desc[3];
 	int p = desc[4];
 
-	float* x_padded = padding(x, xw, xh, p);
+	float* x_padded = padding(x, xw, xh, c, p);
 	int xpw = xw + 2 * p;
 	int xph = xh + 2 * p;
 
