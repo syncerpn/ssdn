@@ -137,7 +137,7 @@ float forward(float* im, int imw, int imh,
 		std::cout << "[INFO] layer " << li;
 		z = conv2d(x, xw, xh, weights[li], biases[li], layers[li], xq_steps[li], wq_steps[li], zw, zh, zn);
 		if (li > 0) {
-			delete[] x;
+			cuda_free(x);
 		}
 		if (li != n_layer-1) {
 			min_gpu(zw*zh*zn, 0, z, 1);
