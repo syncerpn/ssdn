@@ -181,9 +181,10 @@ void run_sim_fast_approx_ma() {
 	float wq_steps[8] = {1.0/(1<<10), 1.0/(1<<8), 1.0/(1<<10), 1.0/(1<<10), 1.0/(1<<10), 1.0/(1<<10), 1.0/(1<<8), 0.0};
 	float xq_steps[8] = {1.0/(1<< 8), 1.0/(1<<8), 1.0/(1<< 8), 1.0/(1<< 8), 1.0/(1<< 8), 1.0/(1<< 8), 1.0/(1<<8), 0.0};
 
-	const size_t H_MAX = 512;
-	const size_t W_MAX = 512;
+	const size_t H_MAX = 256;
+	const size_t W_MAX = 256;
 	const size_t N_MAX = 64;
+	const size_t C_MAX = 32;
 	const size_t K_MAX = 3;
 
 	float** weights = new float*[8];
@@ -191,8 +192,8 @@ void run_sim_fast_approx_ma() {
 	float** workspace = new float*[6];
 	workspace[0] = cuda_make_array(0, H_MAX * W_MAX * N_MAX); // x_padded
 	workspace[1] = cuda_make_array(0, H_MAX * W_MAX * N_MAX * K_MAX * K_MAX); // x_mat
-	workspace[2] = cuda_make_array(0, H_MAX * W_MAX * N_MAX * K_MAX * K_MAX * N_MAX); // x_mat_r
-	workspace[3] = cuda_make_array(0, H_MAX * W_MAX * N_MAX * K_MAX * K_MAX * N_MAX); // w_mat_r
+	workspace[2] = cuda_make_array(0, H_MAX * W_MAX * N_MAX * K_MAX * K_MAX * C_MAX); // x_mat_r
+	workspace[3] = cuda_make_array(0, H_MAX * W_MAX * N_MAX * K_MAX * K_MAX * C_MAX); // w_mat_r
 	workspace[4] = cuda_make_array(0, H_MAX * W_MAX * N_MAX); // b_mat_r
 	workspace[5] = cuda_make_array(0, H_MAX * W_MAX * N_MAX); // y
 
