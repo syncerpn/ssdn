@@ -51,8 +51,8 @@ float* padding(float* x, int xw, int xh, int c, int p) {
 	float* xp = new float[xpw * xph * c];
 	fill_cpu(xpw * xph * c, 0, xp, 1);
 	for (int ci = 0; ci < c; ++ci) {
-		for (int i = 1; i < xph - 1; ++i) {
-			copy_cpu(xw, x+ci*xh*xw+(i-1)*xw, 1, xp+ci*xph*xpw+i*xpw+p, 1);
+		for (int i = p; i < xph - p; ++i) {
+			copy_cpu(xw, x+ci*xh*xw+(i-p)*xw, 1, xp+ci*xph*xpw+i*xpw+p, 1);
 		}
 	}
 	return xp;
