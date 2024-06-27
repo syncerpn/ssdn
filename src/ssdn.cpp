@@ -199,7 +199,7 @@ int main() {
 	int c = 1;
 	int k = 3;
 	int p = 1;
-	int s = 1
+	int s = 1;
 	float* x = new float[xw * xh * c];
 	for (int ic = 0; ic < c; ++ic) {
 		for (int ih = 0; ih < xh; ++ih) {
