@@ -302,26 +302,39 @@ void run_sim_fast_approx_ma() {
 }
 
 int main() {
-	run_sim_fast_approx_ma();
-	// int xw = 5;
-	// int xh = 4;
-	// int c = 2;
-	// int k = 3;
-	// int p = 1;
-	// int s = 1;
-	// int n = 4;
+	// run_sim_fast_approx_ma();
+	int xw = 5;
+	int xh = 4;
+	int c = 2;
+	int k = 3;
+	int p = 1;
+	int s = 1;
+	int n = 4;
 
-	// float* x = new float[xw * xh * c];
-	// for (int ic = 0; ic < c; ++ic) {
-	// 	for (int ih = 0; ih < xh; ++ih) {
-	// 		for (int iw = 0; iw < xw; ++iw) {
-	// 			x[ic*xh*xw+ih*xw+iw] = ic*xh*xw+ih*xw+iw;
-	// 			std::cout << x[ic*xh*xw+ih*xw+iw] << " ";
-	// 		}
-	// 		std::cout << std::endl;
-	// 	}
-	// }
-	// std::cout << std::endl;
+	float* x = new float[xw * xh * c];
+	for (int ic = 0; ic < c; ++ic) {
+		for (int ih = 0; ih < xh; ++ih) {
+			for (int iw = 0; iw < xw; ++iw) {
+				x[ic*xh*xw+ih*xw+iw] = ic*xh*xw+ih*xw+iw;
+				std::cout << x[ic*xh*xw+ih*xw+iw] << " ";
+			}
+			std::cout << std::endl;
+		}
+	}
+	float* x_gpu = cuda_make_array(x, xw*xh*c);
+	float* x_padded = new float[(xw+2*p)*(xh+2*p)*c];
+	float* x_padded_gpu = cuda_make_array(0, (xw+2*p)*(xh+2*p)*c);
+	padding_gpu(x_gpu, xw, int xh, c, p, x_padded_gpu);
+	cuda_pull_array(x_padded_gpu, x_padded, (xw+2*p)*(xh+2*p)*c);
+	for (int ic = 0; ic < c; ++ic) {
+		for (int ih = 0; ih < xh+2*p; ++ih) {
+			for (int iw = 0; iw < xw+2*p; ++iw) {
+				std::cout << x_padded[ic*(xh+2*p)*(xw+2*p)+ih*(xw+2*p)+iw] << " ";
+			}
+			std::cout << std::endl;
+		}
+	}
+	std::cout << std::endl;
 
 	// float* w = new float[k*k*c*n];
 	// for (int i = 0; i < k*k*c*n; ++i) {
@@ -351,7 +364,10 @@ int main() {
 	// }
 	// std::cout << std::endl;
 
-	// delete[] x;
+	delete[] x;
+	delete[] x_padded;
+	cuda_free(x_gpu);
+	cuda_free(x_padded_gpu);
 	// delete[] w;
 	// delete[] y;
 	// delete[] b;
