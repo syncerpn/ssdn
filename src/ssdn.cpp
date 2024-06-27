@@ -135,6 +135,15 @@ float forward(float* im, int imw, int imh,
 		std::cout << " done" << std::endl;
 	}
 
+	float* zz = new float[zw*zh*zn];
+	cuda_pull_array(z, zz, zw*zh*zn);
+	for (int hi = 0; hi < zh; ++hi) {
+		for (int wi = 0; wi < zw; ++wi) {
+			std::cout << zz[hi*zw+wi] << " ";
+		}
+		std::cout << std::endl;
+	}
+
 	float* z_im = cuda_make_array(0, zw*zh*zn);
 	flatten_arrange_gpu(im, z, zw, zh, 2, z_im);
 	// for (int ni = 0; ni < 4; ++ni) {
