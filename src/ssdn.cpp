@@ -243,7 +243,7 @@ int main() {
 	}
 	std::cout << std::endl;
 
-	float* w = new float[9]
+	float* w = new float[9];
 	for (int i = 0; i < 9; ++i) {
 		w[i] = i / 2;
 	}
@@ -260,7 +260,7 @@ int main() {
 			std::cout << std::endl;
 		}
 	}
-	
+
 	delete[] x;
 	delete[] x_padded;
 	delete[] x_mat;
