@@ -263,6 +263,7 @@ int main() {
 		}
 		std::cout << std::endl;
 	}
+	std::cout << std::endl;
 
 	for (int i = 0; i < y_size * n; ++i) {
 		for (int j = 0; j < f_size; ++j) {
@@ -270,6 +271,7 @@ int main() {
 		}
 		std::cout << std::endl;
 	}
+	std::cout << std::endl;
 
 	mul_cpu(f_size * n * y_size, w_mat_r, 1, x_mat_r, 1);
 
