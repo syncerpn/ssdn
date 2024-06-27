@@ -77,12 +77,22 @@ void pow_cpu(int N, float ALPHA, float *X, int INCX, float *Y, int INCY) {
 	}
 }
 
-void constrain_cpu(int N, float MIN, float MAX, float *X, int INCX, float *Y, int INCY) {
+void min_cpu(int N, float MIN, float *X, int INCX, float *Y, int INCY) {
 	if (Y == 0) {
 		Y = X;
 		INCY = INCX;
 	}
 	for (int i = 0; i < N; ++i) {
-		Y[i*INCY] = fminf(MAX, fmaxf(MIN, X[i*INCX]));
+		Y[i*INCY] = fmaxf(MIN, X[i*INCX]);
+	}
+}
+
+void max_cpu(int N, float MAX, float *X, int INCX, float *Y, int INCY) {
+	if (Y == 0) {
+		Y = X;
+		INCY = INCX;
+	}
+	for (int i = 0; i < N; ++i) {
+		Y[i*INCY] = fminf(MAX, X[i*INCX]);
 	}
 }

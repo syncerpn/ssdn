@@ -29,7 +29,8 @@ void copy_gpu(int N, float *X, int INCX, float *Y, int INCY);
 void add_gpu(int N, float ALPHA, float *X, int INCX=1, float *Y=0, int INCY=1);
 void scale_gpu(int N, float ALPHA, float *X, int INCX=1, float *Y=0, int INCY=1);
 void pow_gpu(int N, float ALPHA, float *X, int INCX=1, float *Y=0, int INCY=1);
-void constrain_gpu(int N, float MIN, float MAX, float *X, int INCX=1, float *Y=0, int INCY=1);
+void min_gpu(int N, float MIN, float *X, int INCX=1, float *Y=0, int INCY=1);
+void max_gpu(int N, float MAX, float *X, int INCX=1, float *Y=0, int INCY=1);
 
 void add_bias_gpu(float *output, float *biases, int batch, int n, int size);
 
@@ -45,5 +46,6 @@ void tile_repeat(int N, int K, int M, float *X, int INCX, float *Y, int INCY);
 void add_cpu(int N, float ALPHA, float *X, int INCX=1, float *Y=0, int INCY=1);
 void scale_cpu(int N, float ALPHA, float *X, int INCX=1, float *Y=0, int INCY=1);
 void pow_cpu(int N, float ALPHA, float *X, int INCX=1, float *Y=0, int INCY=1);
-void constrain_cpu(int N, float MIN, float MAX, float *X, int INCX=1, float *Y=0, int INCY=1);
+void min_cpu(int N, float MIN, float *X, int INCX=1, float *Y=0, int INCY=1);
+void max_cpu(int N, float MAX, float *X, int INCX=1, float *Y=0, int INCY=1);
 #endif

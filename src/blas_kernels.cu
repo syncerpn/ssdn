@@ -91,17 +91,31 @@ void pow_gpu(int N, float ALPHA, float *X, int INCX, float *Y, int INCY) {
     check_error(cudaPeekAtLastError());
 }
 
-__global__ void constrain_kernel(int N, float MIN, float MAX, float *X, int INCX, float *Y, int INCY) {
+__global__ void min_kernel(int N, float MIN, float *X, int INCX, float *Y, int INCY) {
     int i = (blockIdx.x + blockIdx.y*gridDim.x) * blockDim.x + threadIdx.x;
-    if (i < N) Y[i*INCY] = fminf(MAX, fmaxf(MIN, X[i*INCX]));
+    if (i < N) Y[i*INCY] = fmaxf(MIN, X[i*INCX]);
 }
 
-void constrain_gpu(int N, float MIN, float MAX, float *X, int INCX, float *Y, int INCY) {
+void min_gpu(int N, float MIN, float *X, int INCX, float *Y, int INCY) {
     if (Y == 0) {
         Y = X;
         INCY = INCX;
     }
-    constrain_kernel<<<cuda_gridsize(N), BLOCK>>>(N, MIN, MAX, X, INCX, Y, INCY);
+    min_kernel<<<cuda_gridsize(N), BLOCK>>>(N, MIN, X, INCX, Y, INCY);
+    check_error(cudaPeekAtLastError());
+}
+
+__global__ void max_kernel(int N, float MAX, float *X, int INCX, float *Y, int INCY) {
+    int i = (blockIdx.x + blockIdx.y*gridDim.x) * blockDim.x + threadIdx.x;
+    if (i < N) Y[i*INCY] = fminf(MAX, X[i*INCX]);
+}
+
+void max_gpu(int N, float MAX, float *X, int INCX, float *Y, int INCY) {
+    if (Y == 0) {
+        Y = X;
+        INCY = INCX;
+    }
+    max_kernel<<<cuda_gridsize(N), BLOCK>>>(N, MAX, X, INCX, Y, INCY);
     check_error(cudaPeekAtLastError());
 }
 
