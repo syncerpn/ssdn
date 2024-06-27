@@ -42,7 +42,7 @@ void accumulate_cpu(int N, int K, float *X, int INCX, float *Y, int INCY) {
 void tile_repeat(int N, int K, int M, float *X, int INCX, float *Y, int INCY) {
 	for (int i = 0; i < N / K; ++i) {
 		for (int j = 0; j < M; ++j) {
-			copy_cpu(K, X+i*K*INCX, INCX, Y+(i*K*M+j)*INCY, INCY);
+			copy_cpu(K, X+i*K*INCX, INCX, Y+(i*K*M+j*K)*INCY, INCY);
 		}
 	}
 }
