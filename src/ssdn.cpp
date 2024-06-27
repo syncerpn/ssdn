@@ -171,7 +171,7 @@ float forward(float* im, int imw, int imh,
 	delete[] z;
 	delete[] z_im;
 
-	return -10 * math.log10(mean);
+	return -10 * log10(mean);
 }
 
 void run_sim_fast_approx_ma() {
@@ -249,6 +249,8 @@ void run_sim_fast_approx_ma() {
 		fclose(f);
 
 		float psnr = forward(im, imw, imh, gt, gtw, gth, layers, 8, weights, biases, wq_steps, xq_steps);
+
+		std::cout << psnr << std::endl;
 
 		delete[] im;
 		delete[] gt;
