@@ -166,7 +166,7 @@ float forward(float* im, int imw, int imh,
 	float _t;
 	for (int hi = 2; hi < gth - 2; ++hi) {
 		fill_gpu(1, 0, t, 1);
-		accumulate_gpu(1, gtw-4, z_im+hi*gtw+2, 1, &t, 1);
+		accumulate_gpu(1, gtw-4, z_im+hi*gtw+2, 1, t, 1);
 		cuda_pull_array(t, &_t, 1);
 		sum += _t;
 	}
