@@ -39,13 +39,43 @@ void mul_gpu(int N, float *X, int INCX, float *Y, int INCY) {
     check_error(cudaPeekAtLastError());
 }
 
-__global__ void copy_kernel(int N,  float *X, int INCX, float *Y, int INCY) {
+__global__ void copy_kernel(int N, float *X, int INCX, float *Y, int INCY) {
     int i = (blockIdx.x + blockIdx.y*gridDim.x) * blockDim.x + threadIdx.x;
     if (i < N) Y[i*INCY] = X[i*INCX];
 }
 
 void copy_gpu(int N, float *X, int INCX, float *Y, int INCY) {
     copy_kernel<<<cuda_gridsize(N), BLOCK>>>(N, X, INCX, Y, INCY);
+    check_error(cudaPeekAtLastError());
+}
+
+__global__ void accumulate_kernel(int N, int K, float *X, int INCX, float *Y, int INCY) {
+    int i = (blockIdx.x + blockIdx.y*gridDim.x) * blockDim.x + threadIdx.x;
+    if (i < N) {
+        for (int j = 0; j < K; ++j) {
+            Y[i*INCY] += X[(i*K+j)*INCX];
+        }
+    }
+}
+
+void accumulate_gpu(int N, int K, float *X, int INCX, float *Y, int INCY) {
+    accumulate_kernel<<<cuda_gridsize(N), BLOCK>>>(N, K, X, INCX, Y, INCY);
+    check_error(cudaPeekAtLastError());
+}
+
+__global__ void tile_repeat_kernel(int N, int K, int M, float *X, int INCX, float *Y, int INCY) {
+    int index = (blockIdx.x + blockIdx.y*gridDim.x) * blockDim.x + threadIdx.x;
+    if (index >= M*N) return;
+    int k = index % K;
+    index /= K;
+    int j = index % M;
+    index /= M;
+    int i = index;
+    Y[(i*K*M+j*K+k)*INCY] = X[(i*K+k)*INCX];
+}
+
+void tile_repeat_gpu(int N, int K, int M, float *X, int INCX, float *Y, int INCY) {
+    tile_repeat_kernel<<<cuda_gridsize(N*M), BLOCK>>>(N, K, M, X, INCX, Y, INCY);
     check_error(cudaPeekAtLastError());
 }
 

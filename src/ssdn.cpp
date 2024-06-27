@@ -48,11 +48,10 @@ float quantize(float x, float step, int nbit, bool sign) {
 float* padding(float* x, int xw, int xh, int c, int p) {
 	int xpw = xw + 2 * p;
 	int xph = xh + 2 * p;
-	float* xp = new float[xpw * xph * c]();
-	// fill_cpu(xpw * xph * c, 0, xp, 1);
+	float* xp = cuda_make_array(0, xpw * xph * c);
 	for (int ci = 0; ci < c; ++ci) {
 		for (int i = p; i < xph - p; ++i) {
-			copy_cpu(xw, x+ci*xh*xw+(i-p)*xw, 1, xp+ci*xph*xpw+i*xpw+p, 1);
+			copy_gpu(xw, x+ci*xh*xw+(i-p)*xw, 1, xp+ci*xph*xpw+i*xpw+p, 1);
 		}
 	}
 	return xp;
@@ -65,13 +64,13 @@ float* unroll(float* x, int xw, int xh, int c, int k, int s) {
 	int y_size = yw * yh;
 	int f_size = k * k * c;
 
-	float* x_mat = new float[y_size * f_size]();
+	float* x_mat = cuda_make_array(0, y_size * f_size);
 
 	for (int hi = 0; hi < yh; ++hi) {
 		for (int wi = 0; wi < yw; ++wi) {
 			for (int ci = 0; ci < c; ++ci) {
 				for (int ki = 0; ki < k; ++ki) {
-					copy_cpu(k, x+ci*xh*xw+(hi*s+ki)*xw+wi*s, 1, x_mat+(hi*yw+wi)*f_size+ci*k*k+ki*k, 1);
+					copy_gpu(k, x+ci*xh*xw+(hi*s+ki)*xw+wi*s, 1, x_mat+(hi*yw+wi)*f_size+ci*k*k+ki*k, 1);
 				}
 			}
 		}
@@ -98,27 +97,27 @@ float* conv2d(float* x, int xw, int xh, float* w, float* b, int* desc, float xq_
 	int y_size = yw * yh;
 	int f_size = k * k * c;
 
-	float* x_mat_r = new float[y_size * f_size * n]();
-	tile_repeat(f_size * y_size, f_size * y_size, n, x_mat, 1, x_mat_r, 1);
+	float* x_mat_r = cuda_make_array(0, y_size * f_size * n);
+	tile_repeat_gpu(f_size * y_size, f_size * y_size, n, x_mat, 1, x_mat_r, 1);
 
-	float* w_mat_r = new float[f_size * n * y_size]();
-	tile_repeat(f_size * n, f_size, y_size, w, 1, w_mat_r, 1);
+	float* w_mat_r = cuda_make_array(0, f_size * n * y_size);
+	tile_repeat_gpu(f_size * n, f_size, y_size, w, 1, w_mat_r, 1);
 
-	mul_cpu(f_size * n * y_size, w_mat_r, 1, x_mat_r, 1);
+	mul_gpu(f_size * n * y_size, w_mat_r, 1, x_mat_r, 1);
 
-	float* y = new float[y_size * n]();
-	accumulate_cpu(y_size * n, f_size, x_mat_r, 1, y, 1);
+	float* y = cuda_make_array(0, y_size * n);
+	accumulate_gpu(y_size * n, f_size, x_mat_r, 1, y, 1);
 
-	float* b_mat_r = new float[y_size * n]();
-	tile_repeat(n, 1, y_size, b, 1, b_mat_r, 1);
+	float* b_mat_r = cuda_make_array(0, y_size * n);
+	tile_repeat_gpu(n, 1, y_size, b, 1, b_mat_r, 1);
 
-	axpy_cpu(y_size * n, 1, b_mat_r, 1, y, 1);
+	axpy_gpu(y_size * n, 1, b_mat_r, 1, y, 1);
 
-	delete[] x_padded;
-	delete[] x_mat;
-	delete[] x_mat_r;
-	delete[] w_mat_r;
-	delete[] b_mat_r;
+	cuda_free(x_padded);
+	cuda_free(x_mat);
+	cuda_free(x_mat_r);
+	cuda_free(w_mat_r);
+	cuda_free(b_mat_r);
 
 	return y;
 }
@@ -141,7 +140,7 @@ float forward(float* im, int imw, int imh,
 			delete[] x;
 		}
 		if (li != n_layer-1) {
-			min_cpu(zw*zh*zn, 0, z, 1);
+			min_gpu(zw*zh*zn, 0, z, 1);
 		}
 		x = z;
 		xw = zw;
@@ -160,18 +159,22 @@ float forward(float* im, int imw, int imh,
 		}
 	}
 
-	axpy_cpu(gtw*gth, -1, gt, 1, z_im, 1);
-	pow_cpu(gtw*gth, 2, z_im, 1);
+	axpy_gpu(gtw*gth, -1, gt, 1, z_im, 1);
+	pow_gpu(gtw*gth, 2, z_im, 1);
 	float sum = 0;
+	float* t = cuda_make_array(0, 1)
+	float _t;
 	for (int hi = 2; hi < gth - 2; ++hi) {
-		float t = 0;
-		accumulate_cpu(1, gtw-4, z_im+hi*gtw+2, 1, &t, 1);
-		sum += t;
+		fill_gpu(1, 0, t, 1);
+		accumulate_gpu(1, gtw-4, z_im+hi*gtw+2, 1, &t, 1);
+		cuda_pull_array(t, &_t, 1);
+		sum += _t;
 	}
 	float mean = sum / ((gth-4)*(gtw-4));
 
-	delete[] z;
-	delete[] z_im;
+	cuda_free(t);
+	cuda_free(z);
+	cuda_free(z_im);
 
 	return -10 * log10(mean);
 }
@@ -206,12 +209,16 @@ void run_sim_fast_approx_ma() {
 		int p = layers[i][4];
 
 		int bias_size = n;
-		biases[i] = new float[bias_size];
-		fread(biases[i], sizeof(float), bias_size, f);
+		float* _bias = new float[bias_size];
+		fread(_bias, sizeof(float), bias_size, f);
+		biases[i] = cuda_make_array(_bias, bias_size);
+		delete[] _bias;
 
 		int weight_size = c * n * k * k;
-		weights[i] = new float[weight_size];
-		fread(weights[i], sizeof(float), weight_size, f);
+		float* _weight = new float[weight_size];
+		fread(_weight, sizeof(float), weight_size, f);
+		weights[i] = cuda_make_array(_weight, weight_size);
+		delete[] _weight;
 
 		fclose(f);
 	}
@@ -223,6 +230,7 @@ void run_sim_fast_approx_ma() {
 		FILE* f;
 		float wf, hf;
 		
+		// read input image
 		data_file_name = "./data/imd_" + std::to_string(i);
 		f = fopen(data_file_name.c_str(), "r");
 		
@@ -232,11 +240,14 @@ void run_sim_fast_approx_ma() {
 		int imh = int(hf);
 
 		int im_size = imw * imh;
-		float* im = new float[im_size];
-		fread(im, sizeof(float), im_size, f);
+		float* _im = new float[im_size];
+		fread(_im, sizeof(float), im_size, f);
+		float* im = cuda_make_array(_im, im_size);
+		delete[] _im;
 
 		fclose(f);
 
+		// read ground truth image
 		data_file_name = "./data/gtd_" + std::to_string(i);
 		f = fopen(data_file_name.c_str(), "r");
 		
@@ -246,11 +257,14 @@ void run_sim_fast_approx_ma() {
 		int gth = int(hf);
 
 		int gt_size = gtw * gth;
-		float* gt = new float[gt_size];
-		fread(gt, sizeof(float), gt_size, f);
+		float* _gt = new float[gt_size];
+		fread(_gt, sizeof(float), gt_size, f);
+		float* gt = cuda_make_array(_gt, gt_size);
+		delete[] _gt;
 
 		fclose(f);
 
+		// forwarding
 		float psnr = forward(im, imw, imh, gt, gtw, gth, layers, 8, weights, biases, wq_steps, xq_steps);
 		psnr_mean += psnr;
 		std::cout << psnr << std::endl;
@@ -261,8 +275,8 @@ void run_sim_fast_approx_ma() {
 	std::cout << psnr_mean / 14 << std::endl;
 
 	for (int i = 0; i < 8; ++i) {
-		delete[] weights[i];
-		delete[] biases[i];
+		cuda_free(weights[i]);
+		cuda_free(biases[i]);
 	}
 	delete[] weights;
 	delete[] biases;

@@ -26,6 +26,9 @@ void axpy_gpu(int N, float ALPHA, float *X, int INCX, float *Y, int INCY);
 void mul_gpu(int N, float *X, int INCX, float *Y, int INCY);
 void copy_gpu(int N, float *X, int INCX, float *Y, int INCY);
 
+void accumulate_gpu(int N, int K, float *X, int INCX, float *Y, int INCY);
+void tile_repeat_gpu(int N, int K, int M, float *X, int INCX, float *Y, int INCY);
+
 void add_gpu(int N, float ALPHA, float *X, int INCX=1, float *Y=0, int INCY=1);
 void scale_gpu(int N, float ALPHA, float *X, int INCX=1, float *Y=0, int INCY=1);
 void pow_gpu(int N, float ALPHA, float *X, int INCX=1, float *Y=0, int INCY=1);
@@ -41,7 +44,7 @@ void mul_cpu(int N, float *X, int INCX, float *Y, int INCY);
 void copy_cpu(int N, float *X, int INCX, float *Y, int INCY);
 
 void accumulate_cpu(int N, int K, float *X, int INCX, float *Y, int INCY);
-void tile_repeat(int N, int K, int M, float *X, int INCX, float *Y, int INCY);
+void tile_repeat_cpu(int N, int K, int M, float *X, int INCX, float *Y, int INCY);
 
 void add_cpu(int N, float ALPHA, float *X, int INCX=1, float *Y=0, int INCY=1);
 void scale_cpu(int N, float ALPHA, float *X, int INCX=1, float *Y=0, int INCY=1);
