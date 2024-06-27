@@ -301,8 +301,8 @@ int main() {
 	}
 	std::cout << std::endl;
 
-	float* w = new float[f_size * n];
-	for (int i = 0; i < f_size * n; ++i) {
+	float* w = new float[k*k*c*n];
+	for (int i = 0; i < k*k*c*n; ++i) {
 		w[i] = (float)i / 2;
 		std::cout << w[i] << " ";
 	}
