@@ -162,7 +162,7 @@ float forward(float* im, int imw, int imh,
 	axpy_gpu(gtw*gth, -1, gt, 1, z_im, 1);
 	pow_gpu(gtw*gth, 2, z_im, 1);
 	float sum = 0;
-	float* t = cuda_make_array(0, 1)
+	float* t = cuda_make_array(0, 1);
 	float _t;
 	for (int hi = 2; hi < gth - 2; ++hi) {
 		fill_gpu(1, 0, t, 1);
