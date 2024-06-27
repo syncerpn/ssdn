@@ -1,4 +1,4 @@
-ARCH= -gencode arch=compute_90,code=sm_90
+ARCH= -gencode arch=compute_75,code=sm_75
 
 VPATH=./src/
 SLIB=lissdn.so
