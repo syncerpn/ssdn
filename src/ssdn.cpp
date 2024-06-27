@@ -77,7 +77,7 @@ float* unroll(float* x, int xw, int xh, int c, int k, int s) {
 	return x_mat;
 }
 
-void conv2d(float* x, int xw, int xh, float* w, float* b, int* desc, float xq_step, float wq_step, int& yw, int& yh) {
+float* conv2d(float* x, int xw, int xh, float* w, float* b, int* desc, float xq_step, float wq_step, int& yw, int& yh) {
 	int c = desc[0];
 	int n = desc[1];
 	int k = desc[2];
@@ -140,7 +140,7 @@ float forward(float* im, int imw, int imh,
 		}
 		x = z;
 	}
-	
+
 	delete[] x;
 
 	return 0;
