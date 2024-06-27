@@ -71,6 +71,7 @@ void unroll(float* x, int xw, int xh, int c, int k, int s, float* x_mat) {
 			}
 		}
 	}
+}
 
 void conv2d(float* x, int xw, int xh,
 	float* w, float* b, int* desc,
