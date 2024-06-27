@@ -335,6 +335,17 @@ int main() {
 		}
 	}
 	std::cout << std::endl;
+	float* x_mat_gpu = cuda_make_array(0, 10000);
+	unrolling_gpu(x_padded_gpu, xw+2*p, xh+2*p, c, k, s, x_mat_gpu);
+	float* x_mat = new float[10000];
+	cuda_pull_array(x_mat_gpu, x_mat, 10000);
+	for (int i = 0; i < 20; ++i) {
+		for (int j = 0; j < 9; ++j) {
+			std::cout << x_mat[i*9+j] << " ";
+		}
+		std::cout << std::endl;
+	}
+	std::cout << std::endl;
 
 	// float* w = new float[k*k*c*n];
 	// for (int i = 0; i < k*k*c*n; ++i) {
