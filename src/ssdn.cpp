@@ -330,11 +330,8 @@ int main() {
 	std::cout << std::endl;
 
 	delete[] x;
-	delete[] x_padded;
-	delete[] x_mat;
 	delete[] w;
 	delete[] y;
-	delete[] w_mat_r;
-	delete[] x_mat_r;
+	delete[] b;
 	return 0;
 }
