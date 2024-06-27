@@ -63,13 +63,13 @@ float* unroll(float* x, int xw, int xh, int c, int k, int s) {
 	int y_size = yw * yh;
 	int f_size = k * k * c;
 
-	float* x_mat = new float[yw * yh * f_size];
+	float* x_mat = new float[y_size * f_size];
 
 	for (int hi = 0; hi < yh; ++hi) {
 		for (int wi = 0; wi < yw; ++wi) {
 			for (int ci = 0; ci < c; ++ci) {
 				for (int ki = 0; ki < k; ++ki) {
-					copy_cpu(k, x+ci*xh*xw+(hi*s+ki)*xw+wi*s, 1, x_mat+(hi*yw+wi)*k*k*c+ci*k*k+ki*k, 1);
+					copy_cpu(k, x+ci*xh*xw+(hi*s+ki)*xw+wi*s, 1, x_mat+(hi*yw+wi)*f_size+ci*k*k+ki*k, 1);
 				}
 			}
 		}
@@ -223,8 +223,8 @@ int main() {
 			std::cout << std::endl;
 		}
 	}
-
 	std::cout << std::endl;
+
 	float* x_mat = unroll(x_padded, xpw, xph, c, k, s);
 
 	int yw = (xpw - k) / s + 1;
@@ -241,9 +241,29 @@ int main() {
 			std::cout << std::endl;
 		}
 	}
+	std::cout << std::endl;
 
+	float* w = new float[9]
+	for (int i = 0; i < 9; ++i) {
+		w[i] = i / 2;
+	}
+
+	for (int i = 0; i < y_size; ++i) {
+		mul_cpu(f_size, w, 1, x_mat+i*f_size, 1);
+	}
+
+	for (int hi = 0; hi < yh; ++hi) {
+		for (int wi = 0; wi < yw; ++wi) {
+			for (int kki = 0; kki < c*k*k; ++kki) {
+				std::cout << x_mat[(hi*yw+wi)*k*k*c + kki] << " ";
+			}
+			std::cout << std::endl;
+		}
+	}
+	
 	delete[] x;
 	delete[] x_padded;
 	delete[] x_mat;
+	delete[] w;
 	return 0;
 }
