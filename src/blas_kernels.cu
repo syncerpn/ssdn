@@ -228,6 +228,6 @@ __global__ void distribute_mul_kernel(float* X, float* Z, int w, int h, int c, i
 }
 
 void distribute_mul_gpu(float* X, float* Z, int w, int h, int c, int k, int n, float* Y) {
-    distribute_mul_kernel<<<cuda_gridsize(w*h*c*k*k*n), BLOCK>>>(X, Z, w, h, c, k, Y);
+    distribute_mul_kernel<<<cuda_gridsize(w*h*c*k*k*n), BLOCK>>>(X, Z, w, h, c, k, n, Y);
     check_error(cudaPeekAtLastError());
 }
