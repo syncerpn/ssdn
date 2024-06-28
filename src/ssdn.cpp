@@ -191,8 +191,7 @@ void run_sim_fast_approx_ma() {
 	float wq_steps[8] = {1.0/(1<<10), 1.0/(1<<8), 1.0/(1<<10), 1.0/(1<<10), 1.0/(1<<10), 1.0/(1<<10), 1.0/(1<<8), 0.0};
 	float xq_steps[8] = {1.0/(1<< 8), 1.0/(1<<8), 1.0/(1<< 8), 1.0/(1<< 8), 1.0/(1<< 8), 1.0/(1<< 8), 1.0/(1<<8), 0.0};
 
-	const size_t H_MAX = 384;
-	const size_t W_MAX = 384;
+	const size_t SPA_SIZE_MAX = 103680;
 	const size_t N_MAX = 64;
 	const size_t C_MAX = 32;
 	const size_t K_MAX = 3;
@@ -201,10 +200,10 @@ void run_sim_fast_approx_ma() {
 	float** biases = new float*[8];
 	float** workspace = new float*[4];
 	std::cout << "[INFO] allocating GPU mem for processing" << std::endl;
-	workspace[0] = cuda_make_array(0, H_MAX * W_MAX * N_MAX); // x_padded
-	workspace[1] = cuda_make_array(0, H_MAX * W_MAX * N_MAX * K_MAX * K_MAX * C_MAX); // x_mat_r
-	workspace[2] = cuda_make_array(0, H_MAX * W_MAX * N_MAX * K_MAX * K_MAX * C_MAX); // w_mat_r
-	workspace[3] = cuda_make_array(0, H_MAX * W_MAX * N_MAX); // y
+	workspace[0] = cuda_make_array(0, SPA_SIZE_MAX * N_MAX); // x_padded
+	workspace[1] = cuda_make_array(0, SPA_SIZE_MAX * N_MAX * K_MAX * K_MAX * C_MAX); // x_mat_r
+	workspace[2] = cuda_make_array(0, SPA_SIZE_MAX * N_MAX * K_MAX * K_MAX * C_MAX); // w_mat_r
+	workspace[3] = cuda_make_array(0, SPA_SIZE_MAX * N_MAX); // y
 	std::cout << "[INFO] allocation finished" << std::endl;
 	// load model
 	for (int i = 0; i < 8; ++i) {
@@ -232,8 +231,8 @@ void run_sim_fast_approx_ma() {
 		fclose(f);
 	}
 
-	float* im = cuda_make_array(0, H_MAX * W_MAX);
-	float* gt = cuda_make_array(0, H_MAX * W_MAX * 4);
+	float* im = cuda_make_array(0, SPA_SIZE_MAX);
+	float* gt = cuda_make_array(0, SPA_SIZE_MAX * 4);
 	// load images
 	float psnr_mean = 0;
 	for (int i = 0; i < 14; ++i) {
