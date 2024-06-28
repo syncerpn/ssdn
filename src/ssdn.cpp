@@ -200,12 +200,12 @@ void run_sim_fast_approx_ma() {
 	float** weights = new float*[8];
 	float** biases = new float*[8];
 	float** workspace = new float*[4];
+	std::cout << "[INFO] allocating GPU mem for processing" << std::endl;
 	workspace[0] = cuda_make_array(0, H_MAX * W_MAX * N_MAX); // x_padded
 	workspace[1] = cuda_make_array(0, H_MAX * W_MAX * N_MAX * K_MAX * K_MAX * C_MAX); // x_mat_r
 	workspace[2] = cuda_make_array(0, H_MAX * W_MAX * N_MAX * K_MAX * K_MAX * C_MAX); // w_mat_r
 	workspace[3] = cuda_make_array(0, H_MAX * W_MAX * N_MAX); // y
-
-	std::cout << "[INFO] allocating GPU mem for processing" << std::endl;
+	std::cout << "[INFO] allocation finished" << std::endl;
 	// load model
 	for (int i = 0; i < 8; ++i) {
 		std::string data_file_name = "./data/layer_" + std::to_string(i);
