@@ -191,7 +191,7 @@ void run_sim_fast_approx_ma() {
 	float wq_steps[8] = {1.0/(1<<10), 1.0/(1<<8), 1.0/(1<<10), 1.0/(1<<10), 1.0/(1<<10), 1.0/(1<<10), 1.0/(1<<8), 0.0};
 	float xq_steps[8] = {1.0/(1<< 8), 1.0/(1<<8), 1.0/(1<< 8), 1.0/(1<< 8), 1.0/(1<< 8), 1.0/(1<< 8), 1.0/(1<<8), 0.0};
 
-	const size_t SPA_SIZE_MAX = 103680;
+	const size_t SPA_SIZE_MAX = 65536;
 	const size_t N_MAX = 64;
 	const size_t C_MAX = 32;
 	const size_t K_MAX = 3;
