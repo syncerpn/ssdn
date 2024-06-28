@@ -205,6 +205,7 @@ void run_sim_fast_approx_ma() {
 	workspace[2] = cuda_make_array(0, H_MAX * W_MAX * N_MAX * K_MAX * K_MAX * C_MAX); // w_mat_r
 	workspace[3] = cuda_make_array(0, H_MAX * W_MAX * N_MAX); // y
 
+	std::cout << "[INFO] allocating GPU mem for processing" << std::endl;
 	// load model
 	for (int i = 0; i < 8; ++i) {
 		std::string data_file_name = "./data/layer_" + std::to_string(i);
