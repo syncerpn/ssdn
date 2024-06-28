@@ -108,6 +108,7 @@ void conv2d(float* x, int xw, int xh,
 	tile_repeat_gpu(f_size * n, f_size, y_size, w, 1, w_mat_r, 1);
 	tile_repeat_gpu(n, 1, y_size, b, 1, b_mat_r, 1);
 	mul_gpu(f_size * n * y_size, w_mat_r, 1, x_mat_r, 1);
+	fill_gpu(y_size * n, 0, y, 1);
 	accumulate_gpu(y_size * n, f_size, x_mat_r, 1, y, 1);
 	axpy_gpu(y_size * n, 1, b_mat_r, 1, y, 1);
 }
