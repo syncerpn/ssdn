@@ -201,12 +201,12 @@ void run_sim_fast_approx_ma() {
 	float** weights = new float*[8];
 	float** biases = new float*[8];
 	float** workspace = new float*[6];
-	workspace[0] = cuda_make_array(0, H_MAX * W_MAX * N_MAX); // x_padded
-	workspace[1] = cuda_make_array(0, H_MAX * W_MAX * N_MAX * K_MAX * K_MAX); // x_mat
+	// workspace[0] = cuda_make_array(0, H_MAX * W_MAX * N_MAX); // x_padded
+	// workspace[1] = cuda_make_array(0, H_MAX * W_MAX * N_MAX * K_MAX * K_MAX); // x_mat
 	workspace[2] = cuda_make_array(0, H_MAX * W_MAX * N_MAX * K_MAX * K_MAX * C_MAX); // x_mat_r
 	workspace[3] = cuda_make_array(0, H_MAX * W_MAX * N_MAX * K_MAX * K_MAX * C_MAX); // w_mat_r
-	workspace[4] = cuda_make_array(0, H_MAX * W_MAX * N_MAX); // b_mat_r
-	workspace[5] = cuda_make_array(0, H_MAX * W_MAX * N_MAX); // y
+	// workspace[4] = cuda_make_array(0, H_MAX * W_MAX * N_MAX); // b_mat_r
+	// workspace[5] = cuda_make_array(0, H_MAX * W_MAX * N_MAX); // y
 
 	// load model
 	for (int i = 0; i < 8; ++i) {
