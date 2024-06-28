@@ -88,9 +88,8 @@ void conv2d(float* x, int xw, int xh,
 	float* x_padded = workspace[0];
 	float* x_mat = workspace[1];
 	float* x_mat_r = workspace[2];
-	float* w_mat_r = workspace[3];
-	float* b_mat_r = workspace[4];
-	float* y = workspace[5];
+	float* w_mat_r = workspace[1];
+	float* y = workspace[3];
 
 	padding_gpu(x, xw, xh, c, p, x_padded);
 	int xpw = xw + 2 * p;
@@ -106,11 +105,11 @@ void conv2d(float* x, int xw, int xh,
 
 	tile_repeat_gpu(f_size * y_size, f_size * y_size, n, x_mat, 1, x_mat_r, 1);
 	tile_repeat_gpu(f_size * n, f_size, y_size, w, 1, w_mat_r, 1);
-	tile_repeat_gpu(n, 1, y_size, b, 1, b_mat_r, 1);
+	tile_repeat_gpu(n, 1, y_size, b, 1, y, 1);
 	mul_gpu(f_size * n * y_size, w_mat_r, 1, x_mat_r, 1);
-	fill_gpu(y_size * n, 0, y, 1);
+	// fill_gpu(y_size * n, 0, y, 1);
 	accumulate_gpu(y_size * n, f_size, x_mat_r, 1, y, 1);
-	axpy_gpu(y_size * n, 1, b_mat_r, 1, y, 1);
+	// axpy_gpu(y_size * n, 1, b_mat_r, 1, y, 1);
 }
 
 float forward(float* im, int imw, int imh,
@@ -123,7 +122,7 @@ float forward(float* im, int imw, int imh,
 	int xh = imh;
 
 	int zw, zh, zn;
-	float* z = workspace[5];
+	float* z = workspace[3];
 	for (int li = 0; li < n_layer; ++li) {
 		std::cout << "[INFO] layer " << li;
 		conv2d(x, xw, xh, weights[li], biases[li], layers[li], xq_steps[li], wq_steps[li], zw, zh, zn, workspace);
@@ -200,13 +199,11 @@ void run_sim_fast_approx_ma() {
 
 	float** weights = new float*[8];
 	float** biases = new float*[8];
-	float** workspace = new float*[6];
-	// workspace[0] = cuda_make_array(0, H_MAX * W_MAX * N_MAX); // x_padded
-	// workspace[1] = cuda_make_array(0, H_MAX * W_MAX * N_MAX * K_MAX * K_MAX); // x_mat
-	workspace[2] = cuda_make_array(0, H_MAX * W_MAX * N_MAX * K_MAX * K_MAX * C_MAX); // x_mat_r
-	workspace[3] = cuda_make_array(0, H_MAX * W_MAX * N_MAX * K_MAX * K_MAX * C_MAX); // w_mat_r
-	// workspace[4] = cuda_make_array(0, H_MAX * W_MAX * N_MAX); // b_mat_r
-	// workspace[5] = cuda_make_array(0, H_MAX * W_MAX * N_MAX); // y
+	float** workspace = new float*[4];
+	workspace[0] = cuda_make_array(0, H_MAX * W_MAX * N_MAX); // x_padded
+	workspace[1] = cuda_make_array(0, H_MAX * W_MAX * N_MAX * K_MAX * K_MAX * C_MAX); // x_mat_r
+	workspace[2] = cuda_make_array(0, H_MAX * W_MAX * N_MAX * K_MAX * K_MAX * C_MAX); // w_mat_r
+	workspace[3] = cuda_make_array(0, H_MAX * W_MAX * N_MAX); // y
 
 	// load model
 	for (int i = 0; i < 8; ++i) {
@@ -291,8 +288,6 @@ void run_sim_fast_approx_ma() {
 	cuda_free(workspace[1]);
 	cuda_free(workspace[2]);
 	cuda_free(workspace[3]);
-	cuda_free(workspace[4]);
-	cuda_free(workspace[5]);
 
 	for (int i = 0; i < 8; ++i) {
 		cuda_free(weights[i]);
