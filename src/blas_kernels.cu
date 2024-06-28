@@ -218,7 +218,7 @@ __global__ void distribute_mul_kernel(float* X, float* Z, int w, int h, int c, i
     if (index >= w*h*c*k*k*n) return;
     int  j = index % (c*k*k);
     index /= (c*k*k);
-    int  i = index % h;
+    int  i = index % (h*w);
     index /= (h*w);
     int ni = index;
 
