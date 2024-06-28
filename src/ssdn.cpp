@@ -87,8 +87,7 @@ void conv2d(float* x, int xw, int xh,
 
 	float* x_padded = workspace[0];
 	float* x_mat = workspace[1];
-	float* x_mat_r = workspace[2];
-	float* w_mat_r = workspace[1];
+	float* xw_mat = workspace[2];
 	float* y = workspace[3];
 
 	padding_gpu(x, xw, xh, c, p, x_padded);
@@ -103,12 +102,14 @@ void conv2d(float* x, int xw, int xh,
 	int y_size = yw * yh;
 	int f_size = k * k * c;
 
-	tile_repeat_gpu(f_size * y_size, f_size * y_size, n, x_mat, 1, x_mat_r, 1);
-	tile_repeat_gpu(f_size * n, f_size, y_size, w, 1, w_mat_r, 1);
+	// tile_repeat_gpu(f_size * y_size, f_size * y_size, n, x_mat, 1, x_mat_r, 1);
+	distribute_mul_gpu(x_mat, w, yw, yh, c, k, n, xw_mat);
+
+	// tile_repeat_gpu(f_size * n, f_size, y_size, w, 1, w_mat_r, 1);
 	tile_repeat_gpu(n, 1, y_size, b, 1, y, 1);
-	mul_gpu(f_size * n * y_size, w_mat_r, 1, x_mat_r, 1);
+	// mul_gpu(f_size * n * y_size, w_mat_r, 1, x_mat_r, 1);
 	// fill_gpu(y_size * n, 0, y, 1);
-	accumulate_gpu(y_size * n, f_size, x_mat_r, 1, y, 1);
+	accumulate_gpu(y_size * n, f_size, xw_mat, 1, y, 1);
 	// axpy_gpu(y_size * n, 1, b_mat_r, 1, y, 1);
 }
 
@@ -201,8 +202,8 @@ void run_sim_fast_approx_ma() {
 	float** workspace = new float*[4];
 	std::cout << "[INFO] allocating GPU mem for processing" << std::endl;
 	workspace[0] = cuda_make_array(0, SPA_SIZE_MAX * N_MAX); // x_padded
-	workspace[1] = cuda_make_array(0, SPA_SIZE_MAX * N_MAX * K_MAX * K_MAX * C_MAX); // x_mat_r
-	workspace[2] = cuda_make_array(0, SPA_SIZE_MAX * N_MAX * K_MAX * K_MAX * C_MAX); // w_mat_r
+	workspace[1] = cuda_make_array(0, SPA_SIZE_MAX * N_MAX * K_MAX * K_MAX); // x_mat
+	workspace[2] = cuda_make_array(0, SPA_SIZE_MAX * N_MAX * K_MAX * K_MAX * C_MAX); // xw_mat
 	workspace[3] = cuda_make_array(0, SPA_SIZE_MAX * N_MAX); // y
 	std::cout << "[INFO] allocation finished" << std::endl;
 	// load model

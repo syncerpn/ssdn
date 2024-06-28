@@ -212,3 +212,22 @@ void flatten_arrange_gpu(float* X, float* Z, int w, int h, int s, float* Y) {
     flatten_arrange_kernel<<<cuda_gridsize(w*h*s*s), BLOCK>>>(X, Z, w, h, s, Y);
     check_error(cudaPeekAtLastError());
 }
+
+__global__ void distribute_mul_kernel(float* X, float* Z, int w, int h, int c, int k, int n, float* Y) {
+    int index = (blockIdx.x + blockIdx.y*gridDim.x) * blockDim.x + threadIdx.x;
+    int yw = (w - k) / s + 1;
+    int yh = (h - k) / s + 1;
+    if (index >= w*h*c*k*k*n) return;
+    int  j = index % (c*k*k);
+    index /= (c*k*k);
+    int  i = index % h;
+    index /= (h*w);
+    int ni = index;
+
+    Y[ni*(h*w*k*k*c)+i*(k*k*c)+j] = X[i*(k*k*c)+j] * Z[ni*(k*k*c)+j];
+}
+
+void distribute_mul_gpu(float* X, float* Z, int w, int h, int c, int k, int n, float* Y) {
+    distribute_mul_kernel<<<cuda_gridsize(w*h*c*k*k*n), BLOCK>>>(X, Z, w, h, c, k, Y);
+    check_error(cudaPeekAtLastError());
+}
