@@ -303,85 +303,85 @@ void run_sim_fast_approx_ma() {
 }
 
 int main() {
-	// run_sim_fast_approx_ma();
-	int xw = 5;
-	int xh = 4;
-	int c = 2;
-	int k = 3;
-	int p = 1;
-	int s = 1;
-	int n = 4;
+	run_sim_fast_approx_ma();
+	// int xw = 5;
+	// int xh = 4;
+	// int c = 2;
+	// int k = 3;
+	// int p = 1;
+	// int s = 1;
+	// int n = 4;
 
-	float* x = new float[xw * xh * c];
-	for (int ic = 0; ic < c; ++ic) {
-		for (int ih = 0; ih < xh; ++ih) {
-			for (int iw = 0; iw < xw; ++iw) {
-				x[ic*xh*xw+ih*xw+iw] = ic*xh*xw+ih*xw+iw;
-				std::cout << x[ic*xh*xw+ih*xw+iw] << " ";
-			}
-			std::cout << std::endl;
-		}
-	}
-	float* x_gpu = cuda_make_array(x, xw*xh*c);
-	float* x_padded = new float[(xw+2*p)*(xh+2*p)*c];
-	float* x_padded_gpu = cuda_make_array(0, (xw+2*p)*(xh+2*p)*c);
-	padding_gpu(x_gpu, xw, xh, c, p, x_padded_gpu);
-	cuda_pull_array(x_padded_gpu, x_padded, (xw+2*p)*(xh+2*p)*c);
-	for (int ic = 0; ic < c; ++ic) {
-		for (int ih = 0; ih < xh+2*p; ++ih) {
-			for (int iw = 0; iw < xw+2*p; ++iw) {
-				std::cout << x_padded[ic*(xh+2*p)*(xw+2*p)+ih*(xw+2*p)+iw] << " ";
-			}
-			std::cout << std::endl;
-		}
-	}
-	std::cout << std::endl;
-	float* x_mat_gpu = cuda_make_array(0, 10000);
-	unrolling_gpu(x_padded_gpu, xw+2*p, xh+2*p, c, k, s, x_mat_gpu);
-	float* x_mat = new float[10000];
-	cuda_pull_array(x_mat_gpu, x_mat, 10000);
-	for (int i = 0; i < 20; ++i) {
-		for (int j = 0; j < 18; ++j) {
-			std::cout << x_mat[i*18+j] << " ";
-		}
-		std::cout << std::endl;
-	}
-	std::cout << std::endl;
-
-	// float* w = new float[k*k*c*n];
-	// for (int i = 0; i < k*k*c*n; ++i) {
-	// 	w[i] = (float)i / 2;
-	// 	std::cout << w[i] << " ";
-	// }
-	// std::cout << std::endl << std::endl;
-
-	// float* b = new float[n];
-	// for (int i = 0; i < n; ++i) {
-	// 	b[i] = (float)i / 3;
-	// 	std::cout << b[i] << " ";
-	// }
-
-	// int yw, yh, yn;
-	// int ldesc[5] = {c, n, k, s, p};
-	// float* y = conv2d(x, xw, xh, w, b, ldesc, 0, 0, yw, yh, yn);
-
-	// for (int ni = 0; ni < n; ++ni) {
-	// 	for (int hi = 0; hi < yh; ++hi) {
-	// 		for (int wi = 0; wi < yw; ++wi) {
-	// 			std::cout << y[ni*yh*yw+hi*yw+wi] << " ";
+	// float* x = new float[xw * xh * c];
+	// for (int ic = 0; ic < c; ++ic) {
+	// 	for (int ih = 0; ih < xh; ++ih) {
+	// 		for (int iw = 0; iw < xw; ++iw) {
+	// 			x[ic*xh*xw+ih*xw+iw] = ic*xh*xw+ih*xw+iw;
+	// 			std::cout << x[ic*xh*xw+ih*xw+iw] << " ";
 	// 		}
 	// 		std::cout << std::endl;
+	// 	}
+	// }
+	// float* x_gpu = cuda_make_array(x, xw*xh*c);
+	// float* x_padded = new float[(xw+2*p)*(xh+2*p)*c];
+	// float* x_padded_gpu = cuda_make_array(0, (xw+2*p)*(xh+2*p)*c);
+	// padding_gpu(x_gpu, xw, xh, c, p, x_padded_gpu);
+	// cuda_pull_array(x_padded_gpu, x_padded, (xw+2*p)*(xh+2*p)*c);
+	// for (int ic = 0; ic < c; ++ic) {
+	// 	for (int ih = 0; ih < xh+2*p; ++ih) {
+	// 		for (int iw = 0; iw < xw+2*p; ++iw) {
+	// 			std::cout << x_padded[ic*(xh+2*p)*(xw+2*p)+ih*(xw+2*p)+iw] << " ";
+	// 		}
+	// 		std::cout << std::endl;
+	// 	}
+	// }
+	// std::cout << std::endl;
+	// float* x_mat_gpu = cuda_make_array(0, 10000);
+	// unrolling_gpu(x_padded_gpu, xw+2*p, xh+2*p, c, k, s, x_mat_gpu);
+	// float* x_mat = new float[10000];
+	// cuda_pull_array(x_mat_gpu, x_mat, 10000);
+	// for (int i = 0; i < 20; ++i) {
+	// 	for (int j = 0; j < 18; ++j) {
+	// 		std::cout << x_mat[i*18+j] << " ";
 	// 	}
 	// 	std::cout << std::endl;
 	// }
 	// std::cout << std::endl;
 
-	delete[] x;
-	delete[] x_padded;
-	cuda_free(x_gpu);
-	cuda_free(x_padded_gpu);
-	// delete[] w;
-	// delete[] y;
-	// delete[] b;
-	return 0;
+	// // float* w = new float[k*k*c*n];
+	// // for (int i = 0; i < k*k*c*n; ++i) {
+	// // 	w[i] = (float)i / 2;
+	// // 	std::cout << w[i] << " ";
+	// // }
+	// // std::cout << std::endl << std::endl;
+
+	// // float* b = new float[n];
+	// // for (int i = 0; i < n; ++i) {
+	// // 	b[i] = (float)i / 3;
+	// // 	std::cout << b[i] << " ";
+	// // }
+
+	// // int yw, yh, yn;
+	// // int ldesc[5] = {c, n, k, s, p};
+	// // float* y = conv2d(x, xw, xh, w, b, ldesc, 0, 0, yw, yh, yn);
+
+	// // for (int ni = 0; ni < n; ++ni) {
+	// // 	for (int hi = 0; hi < yh; ++hi) {
+	// // 		for (int wi = 0; wi < yw; ++wi) {
+	// // 			std::cout << y[ni*yh*yw+hi*yw+wi] << " ";
+	// // 		}
+	// // 		std::cout << std::endl;
+	// // 	}
+	// // 	std::cout << std::endl;
+	// // }
+	// // std::cout << std::endl;
+
+	// delete[] x;
+	// delete[] x_padded;
+	// cuda_free(x_gpu);
+	// cuda_free(x_padded_gpu);
+	// // delete[] w;
+	// // delete[] y;
+	// // delete[] b;
+	// return 0;
 }
