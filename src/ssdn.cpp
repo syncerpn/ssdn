@@ -341,7 +341,7 @@ int main() {
 	cuda_pull_array(x_mat_gpu, x_mat, 10000);
 	for (int i = 0; i < 20; ++i) {
 		for (int j = 0; j < 18; ++j) {
-			std::cout << x_mat[i*9+j] << " ";
+			std::cout << x_mat[i*18+j] << " ";
 		}
 		std::cout << std::endl;
 	}
