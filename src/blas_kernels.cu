@@ -215,8 +215,6 @@ void flatten_arrange_gpu(float* X, float* Z, int w, int h, int s, float* Y) {
 
 __global__ void distribute_mul_kernel(float* X, float* Z, int w, int h, int c, int k, int n, float* Y) {
     int index = (blockIdx.x + blockIdx.y*gridDim.x) * blockDim.x + threadIdx.x;
-    int yw = (w - k) / s + 1;
-    int yh = (h - k) / s + 1;
     if (index >= w*h*c*k*k*n) return;
     int  j = index % (c*k*k);
     index /= (c*k*k);
