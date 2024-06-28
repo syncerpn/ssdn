@@ -135,15 +135,15 @@ float forward(float* im, int imw, int imh,
 		xh = zh;
 		std::cout << " done" << std::endl;
 
-		// float* zz = new float[zw*zh*1];
-		// cuda_pull_array(z, zz, zw*zh*1);
-		// for (int hi = 0; hi < zh; ++hi) {
-		// 	for (int wi = 0; wi < zw; ++wi) {
-		// 		std::cout << zz[hi*zw+wi] << " ";
-		// 	}
-		// 	std::cout << std::endl;
-		// }
-		// delete[] zz;
+		float* zz = new float[zw*zh*1];
+		cuda_pull_array(z, zz, zw*zh*1);
+		for (int hi = 0; hi < zh; ++hi) {
+			for (int wi = 0; wi < zw; ++wi) {
+				std::cout << zz[hi*zw+wi] << " ";
+			}
+			std::cout << std::endl;
+		}
+		delete[] zz;
 	}
 
 	float* z_im = cuda_make_array(0, zw*zh*zn);
