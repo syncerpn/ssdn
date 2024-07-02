@@ -109,7 +109,7 @@ float forward(float* im, int imw, int imh,
 		xh = zh;
 		std::cout << " done" << std::endl;
 
-		if (wq_steps[li] > 0) {
+		// if (wq_steps[li] > 0) {
 			float* zz = new float[zw*zh*1];
 			cuda_pull_array(z, zz, zw*zh*1);
 			for (int hi = 0; hi < zh; ++hi) {
@@ -119,7 +119,7 @@ float forward(float* im, int imw, int imh,
 				std::cout << std::endl;
 			}
 			delete[] zz;
-		}
+		// }
 	}
 
 	float* z_im = cuda_make_array(0, zw*zh*zn);
