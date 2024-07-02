@@ -247,3 +247,54 @@ void quantize_gpu(int N, float step, int nbit, bool sign, float *X, int INCX, fl
     quantize_kernel<<<cuda_gridsize(N), BLOCK>>>(N, step, nbit, sign, X, INCX, Y, INCY);
     check_error(cudaPeekAtLastError());
 }
+
+__device__ void lead_one_encode(int x, int &k, int &p) {
+    if (x == 0 || x == 1) {
+        k = 0;
+        p = 0;
+    }
+    k = 0;
+    int xx = x;
+    while (xx > 1) {
+        xx = xx >> 1;
+        k += 1;
+    }
+    p = x - (1 << k);
+}
+
+__device__ int approximate(int i, int j) {
+    if ((i == 0) || (j == 0)) return 0;
+
+    int sign_i = i > 0 ? 1 : -1;
+    int sign_j = j > 0 ? 1 : -1;
+
+    i = sign_i * i;
+    j = sign_j * j;
+
+    int ki, pi, kj, pj;
+    lead_one_encode(i, ki, pi);
+    lead_one_encode(j, kj, pj);
+
+    int p1 = pi * pj;
+    int p2 = ((1 << ki) - pi) * ((1 << kj) - pj);
+    int e = p1 < p2 ? p1 : p2;
+    return sign_i * sign_j * (i * j - e);
+
+}
+
+__global__ void distribute_approximate_kernel(float* X, float* Z, int w, int h, int c, int k, int n, float* Y) {
+    int index = (blockIdx.x + blockIdx.y*gridDim.x) * blockDim.x + threadIdx.x;
+    if (index >= w*h*c*k*k*n) return;
+    int  j = index % (c*k*k);
+    index /= (c*k*k);
+    int  i = index % (h*w);
+    index /= (h*w);
+    int ni = index;
+
+    Y[ni*(h*w*k*k*c)+i*(k*k*c)+j] = (float)approximate((int)(X[i*(k*k*c)+j]), (int)(Z[ni*(k*k*c)+j]));
+}
+
+void distribute_approximate_gpu(float* X, float* Z, int w, int h, int c, int k, int n, float* Y) {
+    distribute_mul_kernel<<<cuda_gridsize(w*h*c*k*k*n), BLOCK>>>(X, Z, w, h, c, k, n, Y);
+    check_error(cudaPeekAtLastError());
+}

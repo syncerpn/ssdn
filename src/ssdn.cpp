@@ -5,46 +5,6 @@
 
 #include "ssdn.h"
 
-void lead_one_encode(int x, int &k, int &p) {
-	if (x == 0 || x == 1) {
-		k = 0;
-		p = 0;
-	}
-	k = 0;
-	int xx = x;
-	while (xx > 1) {
-		xx = xx >> 1;
-		k += 1;
-	}
-	p = x - (1 << k);
-}
-
-int approximate(int i, int j) {
-	if (i == 0 || j == 0) return 0;
-
-	int sign_i = i > 0 ? 1 : -1;
-	int sign_j = j > 0 ? 1 : -1;
-
-	i = sign_i * i;
-	j = sign_j * j;
-
-	int ki, pi, kj, pj;
-	lead_one_encode(i, ki, pi);
-	lead_one_encode(j, kj, pj);
-
-	int p1 = pi * pj;
-	int p2 = ((1 << ki) - pi) * ((1 << kj) - pj);
-	int e = p1 < p2 ? p1 : p2;
-	return sign_i * sign_j * (i * j - e);
-}
-
-float quantize(float x, float step, int nbit, bool sign) {
-	int pos_end = sign ?  (1 << (nbit - 1)) - 1 : (1 << nbit) - 1;
-	int neg_end = sign ? -(1 << (nbit - 1))     : 0;
-	int raw_q = roundf(x/step);
-	return raw_q > pos_end ? pos_end : (raw_q < neg_end ? neg_end : raw_q);
-}
-
 void conv2d(float* x, int xw, int xh,
 	float* w, float* b, int* desc,
 	float xq_step, float wq_step,
@@ -78,9 +38,11 @@ void conv2d(float* x, int xw, int xh,
 	int y_size = yw * yh;
 	int f_size = k * k * c;
 
-	distribute_mul_gpu(x_mat, w, yw, yh, c, k, n, xw_mat);
 	if (xq_step > 0) {
+		distribute_approximate_gpu(x_mat, w, yw, yh, c, k, n, xw_mat);
 		scale_gpu(y_size * f_size * n, xq_step * wq_step, xw_mat, 1);
+	} else {
+		distribute_mul_gpu(x_mat, w, yw, yh, c, k, n, xw_mat);
 	}
 
 	tile_repeat_gpu(n, 1, y_size, b, 1, y, 1);
