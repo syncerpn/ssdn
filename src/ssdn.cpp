@@ -189,13 +189,18 @@ void run_sim_fast_approx_ma() {
 		int weight_size = c * n * k * k;
 		float* _weight = new float[weight_size];
 		fread(_weight, sizeof(float), weight_size, f);
+		std::cout << _weight[0] << std::endl;
 		weights[i] = cuda_make_array(_weight, weight_size);
-		delete[] _weight;
 
 		// add quantization
 		if (wq_steps[i] > 0) {
 			quantize_gpu(weight_size, wq_steps[i], 11, true, weights[i]);
 		}
+		cuda_pull_array(weights[i], _weight, c * n * k * k);
+		std::cout << _weight[0] << std::endl;
+		std::cout << std::endl;
+
+		delete[] _weight;
 
 		fclose(f);
 	}
