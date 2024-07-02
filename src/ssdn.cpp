@@ -80,7 +80,7 @@ void conv2d(float* x, int xw, int xh,
 
 	distribute_mul_gpu(x_mat, w, yw, yh, c, k, n, xw_mat);
 	if (xq_step > 0) {
-		scale_gpu(yw * yw * * k * k * c * n, xq_step * wq_step, xw_mat, 1);
+		scale_gpu(yw * yw * k * k * c * n, xq_step * wq_step, xw_mat, 1);
 	}
 
 	tile_repeat_gpu(n, 1, y_size, b, 1, y, 1);
