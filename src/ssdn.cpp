@@ -92,12 +92,15 @@ float forward(float* im, int imw, int imh,
 	int** layers, int n_layer, float** weights, float** biases,
 	float* wq_steps, float* xq_steps, float** workspace) {
 
-	float* x = im;
+	int zw, zh, zn;
+	float* z = workspace[3];
+
+	copy_gpu(imw * imh, im, 1, z, 1);
+
+	float* x = z;
 	int xw = imw;
 	int xh = imh;
 
-	int zw, zh, zn;
-	float* z = workspace[3];
 	for (int li = 0; li < n_layer; ++li) {
 		std::cout << "[INFO] layer " << li;
 		conv2d(x, xw, xh, weights[li], biases[li], layers[li], xq_steps[li], wq_steps[li], zw, zh, zn, workspace);
@@ -110,15 +113,15 @@ float forward(float* im, int imw, int imh,
 		std::cout << " done" << std::endl;
 
 		// if (wq_steps[li] > 0) {
-			float* zz = new float[zw*zh*1];
-			cuda_pull_array(z, zz, zw*zh*1);
-			for (int hi = 0; hi < zh; ++hi) {
-				for (int wi = 0; wi < zw; ++wi) {
-					std::cout << zz[hi*zw+wi] << " ";
-				}
-				std::cout << std::endl;
-			}
-			delete[] zz;
+			// float* zz = new float[zw*zh*1];
+			// cuda_pull_array(z, zz, zw*zh*1);
+			// for (int hi = 0; hi < zh; ++hi) {
+			// 	for (int wi = 0; wi < zw; ++wi) {
+			// 		std::cout << zz[hi*zw+wi] << " ";
+			// 	}
+			// 	std::cout << std::endl;
+			// }
+			// delete[] zz;
 		// }
 	}
 
@@ -194,17 +197,16 @@ void run_sim_fast_approx_ma() {
 		int weight_size = c * n * k * k;
 		float* _weight = new float[weight_size];
 		fread(_weight, sizeof(float), weight_size, f);
-		std::cout << _weight[0] << std::endl;
 		weights[i] = cuda_make_array(_weight, weight_size);
 
 		// add quantization
 		if (wq_steps[i] > 0) {
 			quantize_gpu(weight_size, wq_steps[i], 11, true, weights[i]);
-			cuda_pull_array(weights[i], _weight, c * n * k * k);
-			for (int j = 0; j < c * k * k; ++j) {
-				std::cout << _weight[0*k*k*c+j] << " ";
-			}
-			std::cout << std::endl;
+			// cuda_pull_array(weights[i], _weight, c * n * k * k);
+			// for (int j = 0; j < c * k * k; ++j) {
+			// 	std::cout << _weight[0*k*k*c+j] << " ";
+			// }
+			// std::cout << std::endl;
 		}
 
 		delete[] _weight;
@@ -216,7 +218,7 @@ void run_sim_fast_approx_ma() {
 	float* gt = cuda_make_array(0, SPA_SIZE_MAX * 4);
 	// load images
 	float psnr_mean = 0;
-	for (int i = 0; i < 1; ++i) {
+	for (int i = 0; i < 14; ++i) {
 		std::string data_file_name;
 		FILE* f;
 		float wf, hf;
