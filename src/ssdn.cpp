@@ -194,7 +194,7 @@ void run_sim_fast_approx_ma() {
 
 		// add quantization
 		if (wq_steps[i] > 0) {
-			quantize_gpu(weight_size, wq_steps[i], 10, true, weights[i])
+			quantize_gpu(weight_size, wq_steps[i], 10, true, weights[i]);
 		}
 
 		fclose(f);
