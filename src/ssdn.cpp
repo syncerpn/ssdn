@@ -156,11 +156,11 @@ void run_sim_fast_approx_ma() {
 		}
 	}
 
-	// float wq_steps[8] = {1.0/(1<<10), 1.0/(1<<8), 1.0/(1<<10), 1.0/(1<<10), 1.0/(1<<10), 1.0/(1<<10), 1.0/(1<<8), 0.0};
-	// float xq_steps[8] = {1.0/(1<< 8), 1.0/(1<<8), 1.0/(1<< 8), 1.0/(1<< 8), 1.0/(1<< 8), 1.0/(1<< 8), 1.0/(1<<8), 0.0};
+	float wq_steps[8] = {1.0/(1<<10), 1.0/(1<<8), 1.0/(1<<10), 1.0/(1<<10), 1.0/(1<<10), 1.0/(1<<10), 1.0/(1<<8), 0.0};
+	float xq_steps[8] = {1.0/(1<< 8), 1.0/(1<<8), 1.0/(1<< 8), 1.0/(1<< 8), 1.0/(1<< 8), 1.0/(1<< 8), 1.0/(1<<8), 0.0};
 
-	float wq_steps[8] = {1.0/(1<<10), 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
-	float xq_steps[8] = {1.0/(1<< 8), 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+	// float wq_steps[8] = {1.0/(1<<10), 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+	// float xq_steps[8] = {1.0/(1<< 8), 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
 
 	const size_t SPA_SIZE_MAX = 103680;
 	const size_t N_MAX = 64;
@@ -200,13 +200,11 @@ void run_sim_fast_approx_ma() {
 		// add quantization
 		if (wq_steps[i] > 0) {
 			quantize_gpu(weight_size, wq_steps[i], 11, true, weights[i]);
-			// cuda_pull_array(weights[i], _weight, c * n * k * k);
-			// for (int nn = 0; nn < n; ++nn) {
-			// 	for (int j = 0; j < c * k * k; ++j) {
-			// 		std::cout << _weight[nn*k*k*c+j] << " ";
-			// 	}
-			// 	std::cout << std::endl;
-			// }
+			cuda_pull_array(weights[i], _weight, c * n * k * k);
+			for (int j = 0; j < c * k * k; ++j) {
+				std::cout << _weight[0*k*k*c+j] << " ";
+			}
+			std::cout << std::endl;
 		}
 
 		delete[] _weight;
@@ -218,7 +216,7 @@ void run_sim_fast_approx_ma() {
 	float* gt = cuda_make_array(0, SPA_SIZE_MAX * 4);
 	// load images
 	float psnr_mean = 0;
-	for (int i = 0; i < 14; ++i) {
+	for (int i = 0; i < 1; ++i) {
 		std::string data_file_name;
 		FILE* f;
 		float wf, hf;
