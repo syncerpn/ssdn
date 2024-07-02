@@ -80,7 +80,7 @@ void conv2d(float* x, int xw, int xh,
 
 	distribute_mul_gpu(x_mat, w, yw, yh, c, k, n, xw_mat);
 	if (xq_step > 0) {
-		scale_gpu(yw * yh * k * k * c * n, xq_step * wq_step, xw_mat, 1);
+		scale_gpu(y_size * f_size * n, xq_step * wq_step, xw_mat, 1);
 	}
 
 	tile_repeat_gpu(n, 1, y_size, b, 1, y, 1);
@@ -154,8 +154,11 @@ void run_sim_fast_approx_ma() {
 		}
 	}
 
-	float wq_steps[8] = {1.0/(1<<10), 1.0/(1<<8), 1.0/(1<<10), 1.0/(1<<10), 1.0/(1<<10), 1.0/(1<<10), 1.0/(1<<8), 0.0};
-	float xq_steps[8] = {1.0/(1<< 8), 1.0/(1<<8), 1.0/(1<< 8), 1.0/(1<< 8), 1.0/(1<< 8), 1.0/(1<< 8), 1.0/(1<<8), 0.0};
+	// float wq_steps[8] = {1.0/(1<<10), 1.0/(1<<8), 1.0/(1<<10), 1.0/(1<<10), 1.0/(1<<10), 1.0/(1<<10), 1.0/(1<<8), 0.0};
+	// float xq_steps[8] = {1.0/(1<< 8), 1.0/(1<<8), 1.0/(1<< 8), 1.0/(1<< 8), 1.0/(1<< 8), 1.0/(1<< 8), 1.0/(1<<8), 0.0};
+	
+	float wq_steps[8] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+	float xq_steps[8] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
 
 	const size_t SPA_SIZE_MAX = 103680;
 	const size_t N_MAX = 64;
