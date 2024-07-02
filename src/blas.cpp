@@ -111,7 +111,6 @@ void unrolling_cpu(float* X, int w, int h, int c, int k, int s, float* Y) {
 	int yw = (w - k) / s + 1;
 	int yh = (h - k) / s + 1;
 
-	int y_size = yw * yh;
 	int f_size = k * k * c;
 
 	for (int hi = 0; hi < yh; ++hi) {

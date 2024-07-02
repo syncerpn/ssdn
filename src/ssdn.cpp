@@ -62,6 +62,10 @@ void conv2d(float* x, int xw, int xh,
 	float* xw_mat = workspace[2];
 	float* y = workspace[3];
 
+	if (xq_step > 0) {
+		quantize_gpu(xw * xh * c, xq_step, 10, false, x);
+	}
+
 	padding_gpu(x, xw, xh, c, p, x_padded);
 	int xpw = xw + 2 * p;
 	int xph = xh + 2 * p;
@@ -75,6 +79,10 @@ void conv2d(float* x, int xw, int xh,
 	int f_size = k * k * c;
 
 	distribute_mul_gpu(x_mat, w, yw, yh, c, k, n, xw_mat);
+	if (xq_step > 0) {
+		scale_gpu(yw * yw * * k * k * c * n, xq_step * wq_step, xw_mat, 1);
+	}
+
 	tile_repeat_gpu(n, 1, y_size, b, 1, y, 1);
 	accumulate_gpu(y_size * n, f_size, xw_mat, 1, y, 1);
 }
@@ -183,6 +191,10 @@ void run_sim_fast_approx_ma() {
 		fread(_weight, sizeof(float), weight_size, f);
 		weights[i] = cuda_make_array(_weight, weight_size);
 		delete[] _weight;
+
+		// add quantization
+		if xq_step > 0:
+			quantize_gpu(weight_size, wq_steps[i], 10, true, weights[i])
 
 		fclose(f);
 	}
