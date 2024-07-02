@@ -40,6 +40,8 @@ void unrolling_gpu(float* X, int w, int h, int c, int k, int s, float* Y);
 void flatten_arrange_gpu(float* X, float* Z, int w, int h, int s, float* Y);
 void distribute_mul_gpu(float* X, float* Z, int w, int h, int c, int k, int n, float* Y);
 
+void quantize_gpu(int N, float step, int nbit, bool sign, float *X, int INCX=1, float *Y=0, int INCY=1);
+
 // blas.cpp
 void fill_cpu(int N, float ALPHA, float *X, int INCX);
 void axpy_cpu(int N, float ALPHA, float *X, int INCX, float *Y, int INCY);

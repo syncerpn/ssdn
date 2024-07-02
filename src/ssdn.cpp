@@ -45,34 +45,6 @@ float quantize(float x, float step, int nbit, bool sign) {
 	return raw_q > pos_end ? pos_end : (raw_q < neg_end ? neg_end : raw_q);
 }
 
-// void padding(float* x, int xw, int xh, int c, int p, float* xp) {
-// 	int xpw = xw + 2 * p;
-// 	int xph = xh + 2 * p;
-// 	for (int ci = 0; ci < c; ++ci) {
-// 		for (int i = p; i < xph - p; ++i) {
-// 			copy_gpu(xw, x+ci*xh*xw+(i-p)*xw, 1, xp+ci*xph*xpw+i*xpw+p, 1);
-// 		}
-// 	}
-// }
-
-// void unroll(float* x, int xw, int xh, int c, int k, int s, float* x_mat) {
-// 	int yw = (xw - k) / s + 1;
-// 	int yh = (xh - k) / s + 1;
-
-// 	int y_size = yw * yh;
-// 	int f_size = k * k * c;
-
-// 	for (int hi = 0; hi < yh; ++hi) {
-// 		for (int wi = 0; wi < yw; ++wi) {
-// 			for (int ci = 0; ci < c; ++ci) {
-// 				for (int ki = 0; ki < k; ++ki) {
-// 					copy_gpu(k, x+ci*xh*xw+(hi*s+ki)*xw+wi*s, 1, x_mat+(hi*yw+wi)*f_size+ci*k*k+ki*k, 1);
-// 				}
-// 			}
-// 		}
-// 	}
-// }
-
 void conv2d(float* x, int xw, int xh,
 	float* w, float* b, int* desc,
 	float xq_step, float wq_step,
@@ -102,15 +74,9 @@ void conv2d(float* x, int xw, int xh,
 	int y_size = yw * yh;
 	int f_size = k * k * c;
 
-	// tile_repeat_gpu(f_size * y_size, f_size * y_size, n, x_mat, 1, x_mat_r, 1);
 	distribute_mul_gpu(x_mat, w, yw, yh, c, k, n, xw_mat);
-
-	// tile_repeat_gpu(f_size * n, f_size, y_size, w, 1, w_mat_r, 1);
 	tile_repeat_gpu(n, 1, y_size, b, 1, y, 1);
-	// mul_gpu(f_size * n * y_size, w_mat_r, 1, x_mat_r, 1);
-	// fill_gpu(y_size * n, 0, y, 1);
 	accumulate_gpu(y_size * n, f_size, xw_mat, 1, y, 1);
-	// axpy_gpu(y_size * n, 1, b_mat_r, 1, y, 1);
 }
 
 float forward(float* im, int imw, int imh,
@@ -148,15 +114,6 @@ float forward(float* im, int imw, int imh,
 
 	float* z_im = cuda_make_array(0, zw*zh*zn);
 	flatten_arrange_gpu(im, z, zw, zh, 2, z_im);
-	// for (int ni = 0; ni < 4; ++ni) {
-	// 	int nhi = ni / 2;
-	// 	int nwi = ni % 2;
-	// 	for (int hi = 0; hi < zh; ++hi) {
-	// 		for (int wi = 0; wi < zw; ++wi) {
-	// 			z_im[(hi*2+nhi)*zw*2+wi*2+nwi] = im[hi*zw+wi] + z[ni*zh*zw+hi*zw+wi];
-	// 		}
-	// 	}
-	// }
 
 	axpy_gpu(gtw*gth, -1, gt, 1, z_im, 1);
 	pow_gpu(gtw*gth, 2, z_im, 1);
@@ -214,8 +171,6 @@ void run_sim_fast_approx_ma() {
 		int c = layers[i][0];
 		int n = layers[i][1];
 		int k = layers[i][2];
-		int s = layers[i][3];
-		int p = layers[i][4];
 
 		int bias_size = n;
 		float* _bias = new float[bias_size];

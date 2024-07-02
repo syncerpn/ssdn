@@ -229,3 +229,22 @@ void distribute_mul_gpu(float* X, float* Z, int w, int h, int c, int k, int n, f
     distribute_mul_kernel<<<cuda_gridsize(w*h*c*k*k*n), BLOCK>>>(X, Z, w, h, c, k, n, Y);
     check_error(cudaPeekAtLastError());
 }
+
+__global__ void quantize_kernel(int N, float step, int nbit, bool sign, float *X, int INCX, float *Y, int INCY) {
+    int i = (blockIdx.x + blockIdx.y*gridDim.x) * blockDim.x + threadIdx.x;
+    if (i >= N) return;
+    if 
+    float pos_end = sign ?  (float)(1 << (nbit - 1)) - 1 : (1 << nbit) - 1;
+    float neg_end = sign ? -(float)(1 << (nbit - 1))     : 0;
+    float raw_q = roundf(X[i*INCX] / step)
+    Y[i*INCY] = raw_q > pos_end ? pos_end : (raw_q < neg_end ? neg_end : raw_q);
+}
+
+void quantize_gpu(int N, float step, int nbit, bool sign, float *X, int INCX, float *Y, int INCY) {
+    if (Y == 0) {
+        Y = X;
+        INCY = INCX;
+    }
+    quantize_kernel<<<cuda_gridsize(N), BLOCK>>>(N, step, nbit, sign, X, INCX, Y, INCY);
+    check_error(cudaPeekAtLastError());
+}
