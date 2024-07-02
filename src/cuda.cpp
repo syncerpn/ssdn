@@ -22,7 +22,7 @@ int cuda_get_device() {
 
 void check_error(cudaError_t status) {
     cudaError_t status2 = cudaGetLastError();
-    if (status != cudaSuccess) {   
+    if (status != cudaSuccess) {
         const char *s = cudaGetErrorString(status);
         char buffer[256];
         printf("CUDA Error: %s\n", s);
@@ -30,7 +30,7 @@ void check_error(cudaError_t status) {
         snprintf(buffer, 256, "CUDA Error: %s", s);
         error(buffer);
     } 
-    if (status2 != cudaSuccess) {   
+    if (status2 != cudaSuccess) {
         const char *s = cudaGetErrorString(status);
         char buffer[256];
         printf("CUDA Error Prev: %s\n", s);
@@ -103,7 +103,7 @@ cudaStream_t get_cuda_stream() {
             printf(" cudaStreamCreate error: %d \n", status);
             const char *s = cudaGetErrorString(status);
             printf("CUDA Error: %s\n", s);
-            status = cudaStreamCreateWithFlags(&streamsArray[i], cudaStreamNonBlocking);    // cudaStreamDefault
+            status = cudaStreamCreateWithFlags(&streamsArray[i], cudaStreamNonBlocking); // cudaStreamDefault
             check_error(status);
         }
         streamInit[i] = 1;

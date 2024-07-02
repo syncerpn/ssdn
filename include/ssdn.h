@@ -54,4 +54,8 @@ void scale_cpu(int N, float ALPHA, float *X, int INCX=1, float *Y=0, int INCY=1)
 void pow_cpu(int N, float ALPHA, float *X, int INCX=1, float *Y=0, int INCY=1);
 void min_cpu(int N, float MIN, float *X, int INCX=1, float *Y=0, int INCY=1);
 void max_cpu(int N, float MAX, float *X, int INCX=1, float *Y=0, int INCY=1);
+
+void padding_cpu(float* X, int w, int h, int c, int p, float* Y);
+void unrolling_cpu(float* X, int w, int h, int c, int k, int s, float* Y);
+void flatten_arrange_cpu(float* X, float* Z, int w, int h, int s, float* Y);
 #endif

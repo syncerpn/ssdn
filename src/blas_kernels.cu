@@ -19,7 +19,7 @@ void fill_gpu(int N, float ALPHA, float *X, int INCX) {
     check_error(cudaPeekAtLastError());
 }
 
-__global__ void axpy_kernel(int N, float ALPHA, float *X, int INCX,  float *Y, int INCY) {
+__global__ void axpy_kernel(int N, float ALPHA, float *X, int INCX, float *Y, int INCY) {
     int i = (blockIdx.x + blockIdx.y*gridDim.x) * blockDim.x + threadIdx.x;
     if (i < N) Y[i*INCY] += ALPHA * X[i*INCX];
 }
