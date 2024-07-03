@@ -156,7 +156,7 @@ void run_sim_fast_approx_ma() {
 			cuda_pull_array(weights[i], _weight, weight_size);
 			for (int nn = 0; nn < n; ++nn) {
 				for (int j = 0; j < k * k * c; ++j) {
-					std::cout << _weight[j] << " ";
+					std::cout << _weight[nn*k*k*c+j] << " ";
 				}
 				std::cout << std::endl;
 			}
