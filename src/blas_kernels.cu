@@ -341,3 +341,25 @@ void quantize_compensate_wp_gpu(int N, float step, int nbit, bool sign, float *X
     quantize_compensate_wp_kernel<<<cuda_gridsize(N), BLOCK>>>(N, step, nbit, sign, X, INCX, Y, INCY);
     check_error(cudaPeekAtLastError());
 }
+
+__global__ void compensate_log_kernel(int N, float p, float m, float *X, int INCX, float *Y, int INCY) {
+    int i = (blockIdx.x + blockIdx.y*gridDim.x) * blockDim.x + threadIdx.x;
+    if (i >= N) return;
+    float sign_m = X[i*INCX] > 0 ? 1.0 : -1.0;
+    // int Xi = (int)(abs(X[i*INCX]));
+    // if ((Xi & (Xi - 1)) == 0) {
+    //     Y[i*INCY] = X[i*INCX];
+    // }
+    float Xa = abs(X[i*INCX]);
+
+    Y[i*INCY] = sign_m * roundf(p / m * (m - Xa) * Xa);
+}
+
+void compensate_log_gpu(int N, float p, float m, float *X, int INCX, float *Y, int INCY) {
+    if (Y == 0) {
+        Y = X;
+        INCY = INCX;
+    }
+    compensate_log_kernel<<<cuda_gridsize(N), BLOCK>>>(N, p, m, X, INCX, Y, INCY);
+    check_error(cudaPeekAtLastError());
+}
