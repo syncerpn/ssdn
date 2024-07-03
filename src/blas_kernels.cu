@@ -352,7 +352,7 @@ __global__ void compensate_log_kernel(int N, float p, float m, float *X, int INC
     // }
     float Xa = abs(X[i*INCX]);
 
-    Y[i*INCY] = sign_m * roundf(p / m * (m - Xa) * Xa);
+    Y[i*INCY] = sign_m * roundf(Xa + p / m * (m - Xa) * Xa);
 }
 
 void compensate_log_gpu(int N, float p, float m, float *X, int INCX, float *Y, int INCY) {
