@@ -73,18 +73,6 @@ float forward(float* im, int imw, int imh,
 		xw = zw;
 		xh = zh;
 		std::cout << " done" << std::endl;
-
-		// if (wq_steps[li] > 0) {
-			// float* zz = new float[zw*zh*1];
-			// cuda_pull_array(z, zz, zw*zh*1);
-			// for (int hi = 0; hi < zh; ++hi) {
-			// 	for (int wi = 0; wi < zw; ++wi) {
-			// 		std::cout << zz[hi*zw+wi] << " ";
-			// 	}
-			// 	std::cout << std::endl;
-			// }
-			// delete[] zz;
-		// }
 	}
 
 	float* z_im = cuda_make_array(0, zw*zh*zn);
@@ -124,9 +112,6 @@ void run_sim_fast_approx_ma() {
 	float wq_steps[8] = {1.0/(1<<10), 1.0/(1<<8), 1.0/(1<<10), 1.0/(1<<10), 1.0/(1<<10), 1.0/(1<<10), 1.0/(1<<8), 0.0};
 	float xq_steps[8] = {1.0/(1<< 8), 1.0/(1<<8), 1.0/(1<< 8), 1.0/(1<< 8), 1.0/(1<< 8), 1.0/(1<< 8), 1.0/(1<<8), 0.0};
 
-	// float wq_steps[8] = {1.0/(1<<10), 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
-	// float xq_steps[8] = {1.0/(1<< 8), 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
-
 	const size_t SPA_SIZE_MAX = 103680;
 	const size_t N_MAX = 64;
 	const size_t C_MAX = 32;
@@ -163,16 +148,11 @@ void run_sim_fast_approx_ma() {
 
 		// add quantization
 		if (wq_steps[i] > 0) {
-			quantize_gpu(weight_size, wq_steps[i], 11, true, weights[i]);
-			compensate_wp_gpu(weight_size, 0.048, weights[i]);
-			max_gpu(weight_size, (1 << 10) - 1, weights[i]);
-			min_gpu(weight_size, -1 << 10, weights[i]);
-
-			// cuda_pull_array(weights[i], _weight, c * n * k * k);
-			// for (int j = 0; j < c * k * k; ++j) {
-			// 	std::cout << _weight[0*k*k*c+j] << " ";
-			// }
-			// std::cout << std::endl;
+			// quantize_gpu(weight_size, wq_steps[i], 11, true, weights[i]);
+			// compensate_wp_gpu(weight_size, 0.048, weights[i]);
+			// max_gpu(weight_size, (1 << 10) - 1, weights[i]);
+			// min_gpu(weight_size, -1 << 10, weights[i]);
+			quantize_compensate_wp_kernel(weight_size, wq_steps[i], 11, true, weights[i]);
 		}
 
 		delete[] _weight;
@@ -249,84 +229,4 @@ void run_sim_fast_approx_ma() {
 
 int main() {
 	run_sim_fast_approx_ma();
-	// int xw = 5;
-	// int xh = 4;
-	// int c = 2;
-	// int k = 3;
-	// int p = 1;
-	// int s = 1;
-	// int n = 4;
-
-	// float* x = new float[xw * xh * c];
-	// for (int ic = 0; ic < c; ++ic) {
-	// 	for (int ih = 0; ih < xh; ++ih) {
-	// 		for (int iw = 0; iw < xw; ++iw) {
-	// 			x[ic*xh*xw+ih*xw+iw] = ic*xh*xw+ih*xw+iw;
-	// 			std::cout << x[ic*xh*xw+ih*xw+iw] << " ";
-	// 		}
-	// 		std::cout << std::endl;
-	// 	}
-	// }
-	// float* x_gpu = cuda_make_array(x, xw*xh*c);
-	// float* x_padded = new float[(xw+2*p)*(xh+2*p)*c];
-	// float* x_padded_gpu = cuda_make_array(0, (xw+2*p)*(xh+2*p)*c);
-	// padding_gpu(x_gpu, xw, xh, c, p, x_padded_gpu);
-	// cuda_pull_array(x_padded_gpu, x_padded, (xw+2*p)*(xh+2*p)*c);
-	// for (int ic = 0; ic < c; ++ic) {
-	// 	for (int ih = 0; ih < xh+2*p; ++ih) {
-	// 		for (int iw = 0; iw < xw+2*p; ++iw) {
-	// 			std::cout << x_padded[ic*(xh+2*p)*(xw+2*p)+ih*(xw+2*p)+iw] << " ";
-	// 		}
-	// 		std::cout << std::endl;
-	// 	}
-	// }
-	// std::cout << std::endl;
-	// float* x_mat_gpu = cuda_make_array(0, 10000);
-	// unrolling_gpu(x_padded_gpu, xw+2*p, xh+2*p, c, k, s, x_mat_gpu);
-	// float* x_mat = new float[10000];
-	// cuda_pull_array(x_mat_gpu, x_mat, 10000);
-	// for (int i = 0; i < 20; ++i) {
-	// 	for (int j = 0; j < 18; ++j) {
-	// 		std::cout << x_mat[i*18+j] << " ";
-	// 	}
-	// 	std::cout << std::endl;
-	// }
-	// std::cout << std::endl;
-
-	// // float* w = new float[k*k*c*n];
-	// // for (int i = 0; i < k*k*c*n; ++i) {
-	// // 	w[i] = (float)i / 2;
-	// // 	std::cout << w[i] << " ";
-	// // }
-	// // std::cout << std::endl << std::endl;
-
-	// // float* b = new float[n];
-	// // for (int i = 0; i < n; ++i) {
-	// // 	b[i] = (float)i / 3;
-	// // 	std::cout << b[i] << " ";
-	// // }
-
-	// // int yw, yh, yn;
-	// // int ldesc[5] = {c, n, k, s, p};
-	// // float* y = conv2d(x, xw, xh, w, b, ldesc, 0, 0, yw, yh, yn);
-
-	// // for (int ni = 0; ni < n; ++ni) {
-	// // 	for (int hi = 0; hi < yh; ++hi) {
-	// // 		for (int wi = 0; wi < yw; ++wi) {
-	// // 			std::cout << y[ni*yh*yw+hi*yw+wi] << " ";
-	// // 		}
-	// // 		std::cout << std::endl;
-	// // 	}
-	// // 	std::cout << std::endl;
-	// // }
-	// // std::cout << std::endl;
-
-	// delete[] x;
-	// delete[] x_padded;
-	// cuda_free(x_gpu);
-	// cuda_free(x_padded_gpu);
-	// // delete[] w;
-	// // delete[] y;
-	// // delete[] b;
-	// return 0;
 }
