@@ -235,7 +235,7 @@ __global__ void quantize_kernel(int N, float step, int nbit, bool sign, float *X
     if (i >= N) return;
     float pos_end = sign ?  (float)(1 << (nbit - 1)) - 1 : (1 << nbit) - 1;
     float neg_end = sign ? -(float)(1 << (nbit - 1))     : 0;
-    float raw_q = ceilf(X[i*INCX] / step);
+    float raw_q = roundf(X[i*INCX] / step);
     Y[i*INCY] = raw_q > pos_end ? pos_end : (raw_q < neg_end ? neg_end : raw_q);
 }
 
