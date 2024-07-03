@@ -303,7 +303,7 @@ __global__ void compensate_wp_kernel(int N, float p, float *X, int INCX, float *
     int i = (blockIdx.x + blockIdx.y*gridDim.x) * blockDim.x + threadIdx.x;
     if (i >= N) return;
     int Xi = (int)(abs(X[i*INCX]));
-    if (Xi & (Xi - 1) == 0) {
+    if ((Xi & (Xi - 1)) == 0) {
         Y[i*INCY] = X[i*INCX];
     }
     Y[i*INCY] = roundf(X[i*INCX] + p * X[i*INCX]);
