@@ -64,7 +64,7 @@ float forward(float* im, int imw, int imh,
 	int xh = imh;
 
 	for (int li = 0; li < n_layer; ++li) {
-		std::cout << "[INFO] layer " << li;
+		// std::cout << "[INFO] layer " << li;
 		conv2d(x, xw, xh, weights[li], biases[li], layers[li], xq_steps[li], wq_steps[li], zw, zh, zn, workspace);
 		if (li != n_layer-1) {
 			min_gpu(zw*zh*zn, 0, z, 1);
@@ -72,7 +72,7 @@ float forward(float* im, int imw, int imh,
 		x = z;
 		xw = zw;
 		xh = zh;
-		std::cout << " done" << std::endl;
+		// std::cout << " done" << std::endl;
 	}
 
 	float* z_im = cuda_make_array(0, zw*zh*zn);
@@ -97,7 +97,7 @@ float forward(float* im, int imw, int imh,
 	return -10 * log10(mean);
 }
 
-void run_sim_fast_approx_ma() {
+void run_sim_fast_approx_ma(float wp) {
 	int _layers[40] = { 1, 64, 3, 1, 1, 64, 32, 1, 1, 0, 32, 32, 3, 1, 1, 32, 32, 3, 1, 1, 32, 32, 3, 1, 1, 32, 32, 3, 1, 1, 32, 64, 1, 1, 0, 64,  4, 3, 1, 1};
 	int **layers = new int*[8];
 	for (int i = 0; i < 8; ++i) {
@@ -148,11 +148,11 @@ void run_sim_fast_approx_ma() {
 
 		// add quantization
 		if (wq_steps[i] > 0) {
-			// quantize_gpu(weight_size, wq_steps[i], 11, true, weights[i]);
-			// compensate_wp_gpu(weight_size, 0.048, weights[i]);
-			// max_gpu(weight_size, (1 << 10) - 1, weights[i]);
-			// min_gpu(weight_size, -1 << 10, weights[i]);
-			quantize_compensate_wp_gpu(weight_size, wq_steps[i], 11, true, weights[i]);
+			quantize_gpu(weight_size, wq_steps[i], 11, true, weights[i]);
+			compensate_wp_gpu(weight_size, wp, weights[i]);
+			max_gpu(weight_size, (1 << 10) - 1, weights[i]);
+			min_gpu(weight_size, -1 << 10, weights[i]);
+			// quantize_compensate_wp_gpu(weight_size, wq_steps[i], 11, true, weights[i]);
 		}
 
 		delete[] _weight;
@@ -228,5 +228,9 @@ void run_sim_fast_approx_ma() {
 }
 
 int main() {
-	run_sim_fast_approx_ma();
+	for (int i = 0; i < 1000; ++i) {
+		float wp = i / 1000.0;
+		std::cout << "[INFO] wp = " << wp << std::endl;
+		run_sim_fast_approx_ma(wp);
+	}
 }
