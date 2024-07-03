@@ -299,7 +299,7 @@ void distribute_approximate_gpu(float* X, float* Z, int w, int h, int c, int k, 
     check_error(cudaPeekAtLastError());
 }
 
-__global__ void compensate_wp_kernel(int N, float* p, float *X, int INCX, float *Y, int INCY) {
+__global__ void compensate_wp_kernel(int N, float p, float *X, int INCX, float *Y, int INCY) {
     int i = (blockIdx.x + blockIdx.y*gridDim.x) * blockDim.x + threadIdx.x;
     if (i >= N) return;
     int Xi = (int)(abs(X[i*INCX]));
