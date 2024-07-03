@@ -153,6 +153,13 @@ void run_sim_fast_approx_ma() {
 			// max_gpu(weight_size, (1 << 10) - 1, weights[i]);
 			// min_gpu(weight_size, -1 << 10, weights[i]);
 			quantize_compensate_wp_gpu(weight_size, wq_steps[i], 11, true, weights[i]);
+			cuda_pull_array(weights[i], _weight, weight_size);
+			for (int nn = 0; nn < n; ++nn) {
+				for (int j = 0; j < k * k * c; ++j) {
+					std::cout << _weight[j]; << " "
+				}
+				std::cout << std::endl;
+			}
 		}
 
 		delete[] _weight;
