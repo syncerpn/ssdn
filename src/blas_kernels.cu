@@ -326,7 +326,7 @@ __global__ void quantize_compensate_wp_kernel(int N, float step, int nbit, bool 
     float neg_end = sign ? -(float)(1 << (nbit - 1))     : 0;
     float raw_q = ceilf(abs(X[i*INCX]) / step);
     int Xi = (int)(raw_q);
-    if (Xi & (Xi - 1) != 0) {
+    if ((Xi & (Xi - 1)) != 0) {
         raw_q += roundf(0.048 * raw_q);
     }
     raw_q = raw_q * sign_m;
