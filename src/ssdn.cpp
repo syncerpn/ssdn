@@ -152,7 +152,7 @@ void run_sim_fast_approx_ma() {
 			// compensate_wp_gpu(weight_size, 0.048, weights[i]);
 			// max_gpu(weight_size, (1 << 10) - 1, weights[i]);
 			// min_gpu(weight_size, -1 << 10, weights[i]);
-			quantize_compensate_wp_kernel(weight_size, wq_steps[i], 11, true, weights[i]);
+			quantize_compensate_wp_gpu(weight_size, wq_steps[i], 11, true, weights[i]);
 		}
 
 		delete[] _weight;
