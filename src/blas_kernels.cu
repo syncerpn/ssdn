@@ -346,13 +346,13 @@ __global__ void compensate_log_kernel(int N, float p, float m, float *X, int INC
     int i = (blockIdx.x + blockIdx.y*gridDim.x) * blockDim.x + threadIdx.x;
     if (i >= N) return;
     float sign_m = X[i*INCX] > 0 ? 1.0 : -1.0;
-    // int Xi = (int)(abs(X[i*INCX]));
-    // if ((Xi & (Xi - 1)) == 0) {
-    //     Y[i*INCY] = X[i*INCX];
-    // }
-    float Xa = abs(X[i*INCX]);
-
-    Y[i*INCY] = sign_m * roundf(Xa + p / m * (m - Xa) * Xa);
+    int Xi = (int)(abs(X[i*INCX]));
+    if ((Xi & (Xi - 1)) == 0) {
+        Y[i*INCY] = X[i*INCX];
+    } else {
+        float Xa = abs(X[i*INCX]);
+        Y[i*INCY] = sign_m * roundf(Xa + p / m * (m - Xa) * Xa);
+    }
 }
 
 void compensate_log_gpu(int N, float p, float m, float *X, int INCX, float *Y, int INCY) {
