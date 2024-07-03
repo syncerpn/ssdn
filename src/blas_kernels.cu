@@ -321,7 +321,7 @@ void compensate_wp_gpu(int N, float p, float *X, int INCX, float *Y, int INCY) {
 __global__ void quantize_compensate_wp_kernel(int N, float step, int nbit, bool sign, float *X, int INCX, float *Y, int INCY) {
     int i = (blockIdx.x + blockIdx.y*gridDim.x) * blockDim.x + threadIdx.x;
     if (i >= N) return;
-    float sign_m = 1.0 if X[i*INCX] > 0 else -1.0;
+    float sign_m = X[i*INCX] > 0 ? 1.0 : -1.0;
     float pos_end = sign ?  (float)(1 << (nbit - 1)) - 1 : (1 << nbit) - 1;
     float neg_end = sign ? -(float)(1 << (nbit - 1))     : 0;
     float raw_q = ceilf(abs(X[i*INCX]) / step);
