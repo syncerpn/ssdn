@@ -299,21 +299,21 @@ void distribute_approximate_gpu(float* X, float* Z, int w, int h, int c, int k, 
     check_error(cudaPeekAtLastError());
 }
 
-__global__ void compensate_kernel(int N, float *X, int INCX, float *Y, int INCY) {
+__global__ void compensate_wp_kernel(int N, float* p, float *X, int INCX, float *Y, int INCY) {
     int i = (blockIdx.x + blockIdx.y*gridDim.x) * blockDim.x + threadIdx.x;
     if (i >= N) return;
     int Xi = (int)(abs(X[i*INCX]));
     if (Xi & (Xi - 1) == 0) {
         Y[i*INCY] = X[i*INCX];
     }
-    Y[i*INCY] = roundf(X[i*INCX] * 1.048);
+    Y[i*INCY] = roundf(X[i*INCX] + p * X[i*INCX]);
 }
 
-void compensate_gpu(int N, float *X, int INCX, float *Y, int INCY) {
+void compensate_wp_gpu(int N, float p, float *X, int INCX, float *Y, int INCY) {
     if (Y == 0) {
         Y = X;
         INCY = INCX;
     }
-    compensate_kernel<<<cuda_gridsize(N), BLOCK>>>(N, X, INCX, Y, INCY);
+    compensate_wp_kernel<<<cuda_gridsize(N), BLOCK>>>(N, p, X, INCX, Y, INCY);
     check_error(cudaPeekAtLastError());
 }

@@ -164,7 +164,7 @@ void run_sim_fast_approx_ma() {
 		// add quantization
 		if (wq_steps[i] > 0) {
 			quantize_gpu(weight_size, wq_steps[i], 11, true, weights[i]);
-			compensate_gpu(weight_size, weights[i]);
+			compensate_wp_gpu(weight_size, 0.048, weights[i]);
 			max_gpu(weight_size, (1 << 10) - 1, weights[i]);
 			min_gpu(weight_size, -1 << 10, weights[i]);
 
