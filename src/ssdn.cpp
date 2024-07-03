@@ -145,6 +145,13 @@ void run_sim_fast_approx_ma() {
 		float* _weight = new float[weight_size];
 		fread(_weight, sizeof(float), weight_size, f);
 		weights[i] = cuda_make_array(_weight, weight_size);
+		for (int nn = 0; nn < n; ++nn) {
+			for (int j = 0; j < k * k * c; ++j) {
+				std::cout << _weight[nn*k*k*c+j] << " ";
+			}
+			std::cout << std::endl;
+		}
+		std::cout << std::endl
 
 		// add quantization
 		if (wq_steps[i] > 0) {
