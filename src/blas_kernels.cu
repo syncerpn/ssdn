@@ -306,7 +306,7 @@ __global__ void compensate_kernel(int N, float *X, int INCX, float *Y, int INCY)
     if (Xi & (Xi - 1) == 0) {
         Y[i*INCY] = X[i*INCX];
     }
-    Y[i*INCY] = (float)(int)(X[i*INCX] * 1.0372);
+    Y[i*INCY] = roundf(X[i*INCX] * 1.048);
 }
 
 void compensate_gpu(int N, float *X, int INCX, float *Y, int INCY) {
