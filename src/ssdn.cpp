@@ -151,7 +151,7 @@ void run_sim_fast_approx_ma() {
 			}
 			std::cout << std::endl;
 		}
-		std::cout << std::endl
+		std::cout << std::endl;
 
 		// add quantization
 		if (wq_steps[i] > 0) {
