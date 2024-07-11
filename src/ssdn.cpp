@@ -128,7 +128,7 @@ void run_sim_fast_approx_ma(float wp) {
 	std::cout << "[INFO] allocation finished" << std::endl;
 	// load model
 	for (int i = 0; i < 8; ++i) {
-		std::string data_file_name = "./data/m3_32.756/layer_" + std::to_string(i);
+		std::string data_file_name = "./data/m3_33.113/layer_" + std::to_string(i);
 		FILE* f = fopen(data_file_name.c_str(), "r");
 
 		int c = layers[i][0];
