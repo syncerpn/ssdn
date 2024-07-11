@@ -148,17 +148,17 @@ void run_sim_fast_approx_ma(float wp) {
 
 		// add quantization
 		if (wq_steps[i] > 0) {
-			// quantize_gpu(weight_size, wq_steps[i], 11, true, weights[i]);
-			// compensate_wp_gpu(weight_size, wp, weights[i]);
-			// max_gpu(weight_size, (1 << 10) - 1, weights[i]);
-			// min_gpu(weight_size, -1 << 10, weights[i]);
-
-			// quantize_compensate_wp_gpu(weight_size, wq_steps[i], 11, true, weights[i]);
-
 			quantize_gpu(weight_size, wq_steps[i], 11, true, weights[i]);
-			compensate_log_gpu(weight_size, wp, 1 << 10, weights[i]);
+			compensate_wp_gpu(weight_size, wp, weights[i]);
 			max_gpu(weight_size, (1 << 10) - 1, weights[i]);
 			min_gpu(weight_size, -1 << 10, weights[i]);
+
+			quantize_compensate_wp_gpu(weight_size, wq_steps[i], 11, wp, true, weights[i]);
+
+			// quantize_gpu(weight_size, wq_steps[i], 11, true, weights[i]);
+			// compensate_log_gpu(weight_size, wp, 1 << 10, weights[i]);
+			// max_gpu(weight_size, (1 << 10) - 1, weights[i]);
+			// min_gpu(weight_size, -1 << 10, weights[i]);
 		}
 
 		delete[] _weight;

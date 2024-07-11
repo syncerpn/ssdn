@@ -43,7 +43,7 @@ void distribute_mul_gpu(float* X, float* Z, int w, int h, int c, int k, int n, f
 void quantize_gpu(int N, float step, int nbit, bool sign, float *X, int INCX=1, float *Y=0, int INCY=1);
 void distribute_approximate_gpu(float* X, float* Z, int w, int h, int c, int k, int n, float* Y);
 void compensate_wp_gpu(int N, float p, float *X, int INCX=1, float *Y=0, int INCY=1);
-void quantize_compensate_wp_gpu(int N, float step, int nbit, bool sign, float *X, int INCX=1, float *Y=0, int INCY=1);
+void quantize_compensate_wp_gpu(int N, float step, int nbit, float comp_factor, bool sign, float *X, int INCX=1, float *Y=0, int INCY=1);
 void compensate_log_gpu(int N, float p, float m, float *X, int INCX=1, float *Y=0, int INCY=1);
 
 // blas.cpp

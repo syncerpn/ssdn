@@ -318,7 +318,7 @@ void compensate_wp_gpu(int N, float p, float *X, int INCX, float *Y, int INCY) {
     check_error(cudaPeekAtLastError());
 }
 
-__global__ void quantize_compensate_wp_kernel(int N, float step, int nbit, bool sign, float *X, int INCX, float *Y, int INCY) {
+__global__ void quantize_compensate_wp_kernel(int N, float step, int nbit, float comp_factor, bool sign, float *X, int INCX, float *Y, int INCY) {
     int i = (blockIdx.x + blockIdx.y*gridDim.x) * blockDim.x + threadIdx.x;
     if (i >= N) return;
     float sign_m = X[i*INCX] > 0 ? 1.0 : -1.0;
@@ -327,18 +327,18 @@ __global__ void quantize_compensate_wp_kernel(int N, float step, int nbit, bool 
     float raw_q = roundf(abs(X[i*INCX]) / step);
     int Xi = (int)(raw_q);
     if ((Xi & (Xi - 1)) != 0) {
-        raw_q += roundf(0.048 * raw_q);
+        raw_q += roundf(comp_factor * raw_q);
     }
     raw_q = raw_q * sign_m;
     Y[i*INCY] = raw_q > pos_end ? pos_end : (raw_q < neg_end ? neg_end : raw_q);
 }
 
-void quantize_compensate_wp_gpu(int N, float step, int nbit, bool sign, float *X, int INCX, float *Y, int INCY) {
+void quantize_compensate_wp_gpu(int N, float step, int nbit, float comp_factor, bool sign, float *X, int INCX, float *Y, int INCY) {
     if (Y == 0) {
         Y = X;
         INCY = INCX;
     }
-    quantize_compensate_wp_kernel<<<cuda_gridsize(N), BLOCK>>>(N, step, nbit, sign, X, INCX, Y, INCY);
+    quantize_compensate_wp_kernel<<<cuda_gridsize(N), BLOCK>>>(N, step, nbit, comp_factor, sign, X, INCX, Y, INCY);
     check_error(cudaPeekAtLastError());
 }
 
