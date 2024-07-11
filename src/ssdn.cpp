@@ -238,7 +238,7 @@ void run_sim_fast_approx_ma(float wp) {
 }
 
 int main() {
-	for (int i = 0; i < 1000; ++i) {
+	for (int i = 51; i < 52; ++i) {
 		float wp = i / 1000.0;
 		std::cout << "[INFO] wp = " << wp << std::endl;
 		run_sim_fast_approx_ma(wp);
