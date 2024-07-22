@@ -97,7 +97,7 @@ float forward(float* im, int imw, int imh,
 	return -10 * log10(mean);
 }
 
-void run_sim_fast_approx_ma(float wp) {
+int run_sim_fast_approx_ma(std::string model_path, float wp) {
 	int _layers[40] = { 1, 64, 3, 1, 1, 64, 32, 1, 1, 0, 32, 32, 3, 1, 1, 32, 32, 3, 1, 1, 32, 32, 3, 1, 1, 32, 32, 3, 1, 1, 32, 64, 1, 1, 0, 64,  4, 3, 1, 1};
 	int **layers = new int*[8];
 	for (int i = 0; i < 8; ++i) {
@@ -129,8 +129,12 @@ void run_sim_fast_approx_ma(float wp) {
 	// load model
 	for (int i = 0; i < 8; ++i) {
 		std::cout << "[INFO] load layer " << i << std::endl;
-		std::string data_file_name = "./data/m3_33.081/layer_" + std::to_string(i);
+		std::string data_file_name = model_path + "/layer_" + std::to_string(i);
 		FILE* f = fopen(data_file_name.c_str(), "r");
+		if (!f) {
+			std::cout << "[ERRO] cannot load model from " + model_path << std::endl;
+			return 1;
+		}
 
 		int c = layers[i][0];
 		int n = layers[i][1];
@@ -236,12 +240,21 @@ void run_sim_fast_approx_ma(float wp) {
 	delete[] workspace;
 	delete[] weights;
 	delete[] biases;
+	return 0;
 }
 
-int main() {
+int main(int argc, char** argv) {
+	if (argc == 1) {
+		std::cout << "[ERRO] model path is required" << std::endl;
+		return 1;
+	}
 	for (int i = 0; i < 1000; ++i) {
 		float wp = i / 1000.0;
 		std::cout << "[INFO] wp = " << wp << std::endl;
-		run_sim_fast_approx_ma(wp);
+		if (run_sim_fast_approx_ma(argv[1], wp)) {
+			std::cout << "[ERRO] simulation finished with error(s)" << std::endl;
+			return 2;
+		}
 	}
+	return 0;
 }
