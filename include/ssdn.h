@@ -64,4 +64,11 @@ void max_cpu(int N, float MAX, float *X, int INCX=1, float *Y=0, int INCY=1);
 void padding_cpu(float* X, int w, int h, int c, int p, float* Y);
 void unrolling_cpu(float* X, int w, int h, int c, int k, int s, float* Y);
 void flatten_arrange_cpu(float* X, float* Z, int w, int h, int s, float* Y);
+
+// image_kernels.cu
+void rgb_to_hsv_gpu(float* im_data, int w, int h, int c);
+void hsv_to_rgb_gpu(float* im_data, int w, int h, int c);
+void solarize_image_gpu(float* im_data, int w, int h, int c, float threshold);
+void posterize_image_gpu(float* im_data, int w, int h, int c, int levels);
+void resize_image_gpu(float* input, int iw, int ih, float* output, int ow, int oh, int oc);
 #endif
