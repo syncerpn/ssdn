@@ -47,7 +47,7 @@ fill_gpu.restype = None
 
 if __name__ == "__main__":
 	cuda_set_device(0)
-	f = (c_float*10)(1,2,3,4,5,6,7,8,9,0)
+	f = c_float(1,2,3,4,5,6,7,8,9,0)
 	print(f)
 	c = cuda_make_array(pointer(f), 10)
 	fill_gpu(3, 20, c, 1)
