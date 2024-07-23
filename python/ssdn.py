@@ -1,4 +1,4 @@
-from ctypes import CDLL
+from ctypes import CDLL, RTLD_GLOBAL
 from ctypes import POINTER, c_size_t, c_int, c_float, c_char_p, pointer
 
 ssdn_lib = CDLL("libssdn.so", RTLD_GLOBAL)
