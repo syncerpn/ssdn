@@ -13,6 +13,13 @@ extern unsigned int seed;
 #include "cublas_v2.h"
 #include "cudnn.h"
 
+typedef struct {
+    int w;
+    int h;
+    int c;
+    float *data;
+} Image;
+
 // cuda.c
 void cuda_set_device(int n);
 float *cuda_make_array(float *x, size_t n);
