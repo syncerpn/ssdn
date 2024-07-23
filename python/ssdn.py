@@ -4,7 +4,7 @@ from ctypes import POINTER, c_size_t, c_int, c_float, c_char_p, pointer
 ssdn_lib = CDLL("libssdn.so", RTLD_GLOBAL)
 
 gpu_index = ssdn_lib.gpu_index
-seed = ssdn_lib.cuda_set_device
+seed = ssdn_lib.seed
 
 class IMAGE(Structure):
 	_fields_ = [("w", c_int),
