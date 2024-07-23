@@ -1,8 +1,8 @@
 ARCH= -gencode arch=compute_75,code=sm_75
 
 VPATH=./src/
-SLIB=lissdn.so
-ALIB=lissdn.a
+SLIB=libssdn.so
+ALIB=libssdn.a
 EXEC=ssdn
 OBJDIR=./obj/
 
