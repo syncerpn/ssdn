@@ -20,6 +20,8 @@ typedef struct {
     float *data;
 } Image;
 
+extern "C" {
+
 // cuda.c
 void cuda_set_device(int n);
 float *cuda_make_array(float *x, size_t n);
@@ -78,4 +80,7 @@ void hsv_to_rgb_gpu(float* im_data, int w, int h, int c);
 void solarize_image_gpu(float* im_data, int w, int h, int c, float threshold);
 void posterize_image_gpu(float* im_data, int w, int h, int c, int levels);
 void resize_image_gpu(float* input, int iw, int ih, float* output, int ow, int oh, int oc);
+
+}
+
 #endif
