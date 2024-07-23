@@ -109,7 +109,8 @@ int run_sim_fast_approx_ma(std::string model_path, float wp) {
 		}
 	}
 
-	float wq_steps[8] = {1.0/(1<<10), 1.0/(1<<8), 1.0/(1<<10), 1.0/(1<<10), 1.0/(1<<10), 1.0/(1<<10), 1.0/(1<<8), 0.0};
+	// float wq_steps[8] = {1.0/(1<<10), 1.0/(1<<8), 1.0/(1<<10), 1.0/(1<<10), 1.0/(1<<10), 1.0/(1<<10), 1.0/(1<<8), 0.0};
+	float wq_steps[8] = {1.0/(1<<8), 1.0/(1<<8), 1.0/(1<<8), 1.0/(1<<8), 1.0/(1<<8), 1.0/(1<<8), 1.0/(1<<8), 0.0};
 	float xq_steps[8] = {1.0/(1<< 8), 1.0/(1<<8), 1.0/(1<< 8), 1.0/(1<< 8), 1.0/(1<< 8), 1.0/(1<< 8), 1.0/(1<<8), 0.0};
 
 	const size_t SPA_SIZE_MAX = 103680;
@@ -158,7 +159,7 @@ int run_sim_fast_approx_ma(std::string model_path, float wp) {
 			// max_gpu(weight_size, (1 << 10) - 1, weights[i]);
 			// min_gpu(weight_size, -1 << 10, weights[i]);
 
-			quantize_compensate_wp_gpu(weight_size, wq_steps[i], 11, wp, true, weights[i]);
+			quantize_compensate_wp_gpu(weight_size, wq_steps[i], 9, wp, true, weights[i]);
 
 			// quantize_gpu(weight_size, wq_steps[i], 11, true, weights[i]);
 			// compensate_log_gpu(weight_size, wp, 1 << 10, weights[i]);
