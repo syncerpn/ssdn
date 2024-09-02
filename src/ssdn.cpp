@@ -266,7 +266,7 @@ void load_cifar10(const char *filename, uint8_t *labels, uint8_t *images) {
     fclose(file);
 }
 
-int run_sim_fast_approx_ma_cls(std::string model_path, float wp) {
+int run_sim_fast_approx_ma_cls() {
 	int _layers[95] = { 3, 16, 3, 1, 1, 16, 16, 3, 1, 1, 16, 16, 3, 1, 1, 16, 16, 3, 1, 1, 16, 16, 3, 1, 1, 16, 16, 3, 1, 1, 16, 16, 3, 1, 1, 16, 32, 3, 2, 1, 32, 32, 3, 1, 1, 32, 32, 3, 1, 1, 32, 32, 3, 1, 1, 32, 32, 3, 1, 1, 32, 32, 3, 1, 1, 32, 64, 3, 2, 1, 64, 64, 3, 1, 1, 64, 64, 3, 1, 1, 64, 64, 3, 1, 1, 64, 64, 3, 1, 1, 64, 64, 3, 1, 1};
 
 	int **layers = new int*[19];
