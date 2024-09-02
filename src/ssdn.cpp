@@ -437,7 +437,7 @@ int main(int argc, char** argv) {
 		}
 		return 0;
 	} else if (0 == strcmp(argv[1], "cls")) {
-		float wp = i / 1000.0;
+		float wp = 0.1;
 		if (run_sim_fast_approx_ma_cls(argv[2], wp)) {
 			std::cout << "[ERRO] simulation finished with error(s)" << std::endl;
 			return 2;
