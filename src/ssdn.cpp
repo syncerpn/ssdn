@@ -286,7 +286,7 @@ int run_sim_fast_approx_ma_cls(std::string model_path, float wp) {
 	const size_t K_MAX = 3;
 
 	float** weights = new float*[19];
-	float** scales = new float*[19]
+	float** scales = new float*[19];
 	float** biases = new float*[19];
 	float** workspace = new float*[4];
 
