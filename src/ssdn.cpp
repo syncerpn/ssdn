@@ -266,7 +266,7 @@ void load_cifar10(const char *filename, uint8_t *labels, uint8_t *images) {
     fclose(file);
 }
 
-int run_sim_fast_approx_ma_cls() {
+int run_sim_fast_approx_ma_cls(std::string model_path, float wp) {
 	int _layers[95] = { 3, 16, 3, 1, 1, 16, 16, 3, 1, 1, 16, 16, 3, 1, 1, 16, 16, 3, 1, 1, 16, 16, 3, 1, 1, 16, 16, 3, 1, 1, 16, 16, 3, 1, 1, 16, 32, 3, 2, 1, 32, 32, 3, 1, 1, 32, 32, 3, 1, 1, 32, 32, 3, 1, 1, 32, 32, 3, 1, 1, 32, 32, 3, 1, 1, 32, 64, 3, 2, 1, 64, 64, 3, 1, 1, 64, 64, 3, 1, 1, 64, 64, 3, 1, 1, 64, 64, 3, 1, 1, 64, 64, 3, 1, 1};
 
 	int **layers = new int*[19];
@@ -430,14 +430,15 @@ int main(int argc, char** argv) {
 		for (int i = 0; i < 1000; ++i) {
 			float wp = i / 1000.0;
 			std::cout << "[INFO] wp = " << wp << std::endl;
-			if (run_sim_fast_approx_ma(argv[1], wp)) {
+			if (run_sim_fast_approx_ma(argv[2], wp)) {
 				std::cout << "[ERRO] simulation finished with error(s)" << std::endl;
 				return 2;
 			}
 		}
 		return 0;
 	} else if (0 == strcmp(argv[1], "cls")) {
-		if (run_sim_fast_approx_ma_cls()) {
+		float wp = i / 1000.0;
+		if (run_sim_fast_approx_ma_cls(argv[2], wp)) {
 			std::cout << "[ERRO] simulation finished with error(s)" << std::endl;
 			return 2;
 		}
