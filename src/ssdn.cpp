@@ -244,18 +244,207 @@ int run_sim_fast_approx_ma(std::string model_path, float wp) {
 	return 0;
 }
 
+void load_cifar10(const char *filename, uint8_t *labels, uint8_t *images) {
+    FILE *file = fopen(filename, "rb");  // Open file in binary mode
+    if (!file) {
+        fprintf(stderr, "Cannot open file: %s\n", filename);
+        exit(EXIT_FAILURE);
+    }
+
+    for (int i = 0; i < NUM_IMAGES_PER_FILE; ++i) {
+        // Read label (1 byte)
+        if (fread(&labels[i], LABEL_SIZE, 1, file) != 1) {
+            fprintf(stderr, "Error reading label from file: %s\n", filename);
+            fclose(file);
+            exit(EXIT_FAILURE);
+        }
+
+        // Read image data (3072 bytes)
+        if (fread(&images[i * IMAGE_SIZE], IMAGE_SIZE, 1, file) != 1) {
+            fprintf(stderr, "Error reading image data from file: %s\n", filename);
+            fclose(file);
+            exit(EXIT_FAILURE);
+        }
+    }
+
+    fclose(file);
+}
+
+int run_sim_fast_approx_ma_cls(std::string model_path, float wp) {
+	int _layers[95] = { 3, 16, 3, 1, 1, 16, 16, 3, 1, 1, 16, 16, 3, 1, 1, 16, 16, 3, 1, 1, 16, 16, 3, 1, 1, 16, 16, 3, 1, 1, 16, 16, 3, 1, 1, 16, 32, 3, 2, 1, 32, 32, 3, 1, 1, 32, 32, 3, 1, 1, 32, 32, 3, 1, 1, 32, 32, 3, 1, 1, 32, 32, 3, 1, 1, 32, 64, 3, 2, 1, 64, 64, 3, 1, 1, 64, 64, 3, 1, 1, 64, 64, 3, 1, 1, 64, 64, 3, 1, 1, 64, 64, 3, 1, 1};
+
+	int **layers = new int*[19];
+	for (int i = 0; i < 19; ++i) {
+		layers[i] = new int[5];
+	}
+	for (int i = 0; i < 19; ++i) {
+		for (int j = 0; j < 5; ++j) {
+			layers[i][j] = _layers[i*5+j];
+		}
+	}
+
+	float wq_step = 1.0/(1<<8);
+	float xq_step = 1.0/(1<<8);
+
+	const size_t SPA_SIZE_MAX = 16*16*32*32;
+	const size_t K_MAX = 3;
+
+	float** weights = new float*[19];
+	float** scales = new float*[19]
+	float** biases = new float*[19];
+	float** workspace = new float*[4];
+
+	std::cout << "[INFO] allocating GPU mem for processing" << std::endl;
+	workspace[0] = cuda_make_array(0, SPA_SIZE_MAX * K_MAX * K_MAX); // x_padded
+	workspace[1] = cuda_make_array(0, SPA_SIZE_MAX * K_MAX * K_MAX); // x_mat
+	workspace[2] = cuda_make_array(0, SPA_SIZE_MAX * K_MAX * K_MAX); // xw_mat
+	workspace[3] = cuda_make_array(0, SPA_SIZE_MAX * K_MAX * K_MAX); // y
+	std::cout << "[INFO] allocation finished" << std::endl;
+	// load model
+	for (int i = 0; i < 19; ++i) {
+		std::cout << "[INFO] load layer " << 2*i << std::endl;
+		std::string data_file_name = model_path + "/layer_" + std::to_string(2*i);
+		FILE* f = fopen(data_file_name.c_str(), "r");
+		if (!f) {
+			std::cout << "[ERRO] cannot load model from " + model_path << std::endl;
+			return 1;
+		}
+		
+		std::cout << "[INFO] load batchnorm layer " << 2*i+1 << std::endl;
+		data_file_name = model_path + "/layer_" + std::to_string(2*i+1);
+		FILE* f2 = fopen(data_file_name.c_str(), "r");
+		if (!f2) {
+			std::cout << "[ERRO] cannot load model from " + model_path << std::endl;
+			return 1;
+		}
+
+		int c = layers[i][0];
+		int n = layers[i][1];
+		int k = layers[i][2];
+
+		int weight_size = c * n * k * k;
+		float* _weight = new float[weight_size];
+		fread(_weight, sizeof(float), weight_size, f);
+		weights[i] = cuda_make_array(_weight, weight_size);
+
+		quantize_compensate_wp_gpu(weight_size, wq_step, 9, wp, true, weights[i]);
+
+		delete[] _weight;
+
+		int scale_bias_size = n;
+
+		float* _bias = new float[scale_bias_size];
+		fread(_bias, sizeof(float), scale_bias_size, f2);
+		biases[i] = cuda_make_array(_bias, scale_bias_size);
+		delete[] _bias;
+
+		float* _scale = new float[scale_bias_size];
+		fread(_scale, sizeof(float), scale_bias_size, f2);
+		scales[i] = cuda_make_array(_scale, scale_bias_size);
+		delete[] _scale;
+
+		fclose(f);
+		fclose(f2);
+	}
+
+	// float* im = cuda_make_array(0, 32 * 32 * 3);
+	// float* gt = cuda_make_array(0, 1);
+	
+    // uint8_t* im_u = (uint8_t*)malloc(10000 * 32 * 32 * 3);
+	// uint8_t* gt_u = (uint8_t*)malloc(10000 * 1);
+
+    // load_cifar10("./data/test_batch.bin", gt_u, im_u);
+
+	// // load images
+	// float acc_mean = 0;
+	// for (int i = 0; i < 10000; ++i) {
+	// 	std::string data_file_name;
+	// 	FILE* f;
+	// 	float wf, hf;
+		
+	// 	// read input image
+	// 	data_file_name = "./data/imd_" + std::to_string(i);
+	// 	f = fopen(data_file_name.c_str(), "r");
+		
+	// 	fread(&wf, sizeof(float), 1, f);
+	// 	fread(&hf, sizeof(float), 1, f);
+	// 	int imw = int(wf);
+	// 	int imh = int(hf);
+
+	// 	int im_size = imw * imh;
+	// 	float* _im = new float[im_size];
+	// 	fread(_im, sizeof(float), im_size, f);
+	// 	cuda_push_array(im, _im, im_size);
+	// 	delete[] _im;
+
+	// 	fclose(f);
+
+	// 	// read ground truth image
+	// 	data_file_name = "./data/gtd_" + std::to_string(i);
+	// 	f = fopen(data_file_name.c_str(), "r");
+		
+	// 	fread(&wf, sizeof(float), 1, f);
+	// 	fread(&hf, sizeof(float), 1, f);
+	// 	int gtw = int(wf);
+	// 	int gth = int(hf);
+
+	// 	int gt_size = gtw * gth;
+	// 	float* _gt = new float[gt_size];
+	// 	fread(_gt, sizeof(float), gt_size, f);
+	// 	cuda_push_array(gt, _gt, gt_size);
+	// 	delete[] _gt;
+
+	// 	fclose(f);
+
+	// 	// forwarding
+	// 	float acc = forward(im, imw, imh, gt, gtw, gth, layers, 8, weights, biases, wq_steps, xq_steps, workspace);
+	// 	acc_mean += acc;
+	// }
+	// std::cout << acc_mean / 10000 << std::endl;
+
+	// cuda_free(im);
+	// cuda_free(gt);
+	cuda_free(workspace[0]);
+	cuda_free(workspace[1]);
+	cuda_free(workspace[2]);
+	cuda_free(workspace[3]);
+
+	for (int i = 0; i < 19; ++i) {
+		cuda_free(weights[i]);
+		cuda_free(biases[i]);
+		cuda_free(scales[i]);
+	}
+	for (int i = 0; i < 19; ++i) {
+		delete[] layers[i];
+	}
+	delete[] layers;
+	delete[] workspace;
+	delete[] weights;
+	delete[] biases;
+	delete[] scales;
+	return 0;
+}
+
 int main(int argc, char** argv) {
 	if (argc == 1) {
 		std::cout << "[ERRO] model path is required" << std::endl;
 		return 1;
 	}
-	for (int i = 0; i < 1000; ++i) {
-		float wp = i / 1000.0;
-		std::cout << "[INFO] wp = " << wp << std::endl;
-		if (run_sim_fast_approx_ma(argv[1], wp)) {
+	if (0 == strcmp(argv[1], "sr")) {
+		for (int i = 0; i < 1000; ++i) {
+			float wp = i / 1000.0;
+			std::cout << "[INFO] wp = " << wp << std::endl;
+			if (run_sim_fast_approx_ma(argv[1], wp)) {
+				std::cout << "[ERRO] simulation finished with error(s)" << std::endl;
+				return 2;
+			}
+		}
+		return 0;
+	} else if (0 == strcmp(argv[1], "cls")) {
+		if (run_sim_fast_approx_ma_cls()) {
 			std::cout << "[ERRO] simulation finished with error(s)" << std::endl;
 			return 2;
 		}
+		return 0;
 	}
-	return 0;
 }
