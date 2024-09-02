@@ -247,22 +247,19 @@ void load_cifar10(const char *filename, uint8_t *labels, uint8_t *images) {
     FILE *file = fopen(filename, "rb");  // Open file in binary mode
     if (!file) {
         fprintf(stderr, "Cannot open file: %s\n", filename);
-        exit(EXIT_FAILURE);
     }
 
-    for (int i = 0; i < NUM_IMAGES_PER_FILE; ++i) {
+    for (int i = 0; i < 10000; ++i) {
         // Read label (1 byte)
-        if (fread(&labels[i], LABEL_SIZE, 1, file) != 1) {
+        if (fread(&labels[i], 1, 1, file) != 1) {
             fprintf(stderr, "Error reading label from file: %s\n", filename);
             fclose(file);
-            exit(EXIT_FAILURE);
         }
 
         // Read image data (3072 bytes)
-        if (fread(&images[i * IMAGE_SIZE], IMAGE_SIZE, 1, file) != 1) {
+        if (fread(&images[i * 32*32*3], 32*32*3, 1, file) != 1) {
             fprintf(stderr, "Error reading image data from file: %s\n", filename);
             fclose(file);
-            exit(EXIT_FAILURE);
         }
     }
 
