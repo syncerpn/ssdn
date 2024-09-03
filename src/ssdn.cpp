@@ -266,6 +266,19 @@ void load_cifar10(const char *filename, uint8_t *labels, uint8_t *images) {
     fclose(file);
 }
 
+void print_array(float* x, int n, int m, int k) {
+	for (int ni = 0; ni < n, ++ni) {
+		for (int mi = 0; mi < m; ++mi) {
+			for (int ki = 0; ki < k; ++ki) {
+				std::cout << x[ni*m*k + mi*k + ki] << " " << std::endl;
+			}
+			std::cout << std::endl;
+		}
+		std::cout << std::endl;
+	}
+}
+
+
 int run_sim_fast_approx_ma_cls(std::string model_path, float wp) {
 	int _layers[95] = { 3, 16, 3, 1, 1, 16, 16, 3, 1, 1, 16, 16, 3, 1, 1, 16, 16, 3, 1, 1, 16, 16, 3, 1, 1, 16, 16, 3, 1, 1, 16, 16, 3, 1, 1, 16, 32, 3, 2, 1, 32, 32, 3, 1, 1, 32, 32, 3, 1, 1, 32, 32, 3, 1, 1, 32, 32, 3, 1, 1, 32, 32, 3, 1, 1, 32, 64, 3, 2, 1, 64, 64, 3, 1, 1, 64, 64, 3, 1, 1, 64, 64, 3, 1, 1, 64, 64, 3, 1, 1, 64, 64, 3, 1, 1};
 
