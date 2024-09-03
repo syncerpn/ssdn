@@ -375,7 +375,7 @@ int run_sim_fast_approx_ma_cls(std::string model_path, float wp) {
     uint8_t* im_u = (uint8_t*)malloc(10000 * 32 * 32 * 3);
 	uint8_t* gt_u = (uint8_t*)malloc(10000 * 1);
 
-    load_cifar10("./data/test_batch.bin", gt_u, im_u);
+    load_cifar10("./data/cifar10/test_batch.bin", gt_u, im_u);
 
     print_array_u(im_u, 3, 32, 32);
 
