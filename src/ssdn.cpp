@@ -357,13 +357,15 @@ int run_sim_fast_approx_ma_cls(std::string model_path, float wp) {
 		fclose(f2);
 	}
 
-	// float* im = cuda_make_array(0, 32 * 32 * 3);
-	// float* gt = cuda_make_array(0, 1);
+	float* im = cuda_make_array(0, 10000 * 32 * 32 * 3);
+	float* gt = cuda_make_array(0, 10000 * 1);
 	
-    // uint8_t* im_u = (uint8_t*)malloc(10000 * 32 * 32 * 3);
-	// uint8_t* gt_u = (uint8_t*)malloc(10000 * 1);
+    uint8_t* im_u = (uint8_t*)malloc(10000 * 32 * 32 * 3);
+	uint8_t* gt_u = (uint8_t*)malloc(10000 * 1);
 
-    // load_cifar10("./data/test_batch.bin", gt_u, im_u);
+    load_cifar10("./data/test_batch.bin", gt_u, im_u);
+
+    print_array(im_u, 3, 32, 32);
 
 	// // load images
 	// float acc_mean = 0;
@@ -412,8 +414,8 @@ int run_sim_fast_approx_ma_cls(std::string model_path, float wp) {
 	// }
 	// std::cout << acc_mean / 10000 << std::endl;
 
-	// cuda_free(im);
-	// cuda_free(gt);
+	cuda_free(im);
+	cuda_free(gt);
 	cuda_free(workspace[0]);
 	cuda_free(workspace[1]);
 	cuda_free(workspace[2]);
@@ -427,6 +429,8 @@ int run_sim_fast_approx_ma_cls(std::string model_path, float wp) {
 	for (int i = 0; i < 19; ++i) {
 		delete[] layers[i];
 	}
+	delete[] im_u;
+	delete[] gt_u;
 	delete[] layers;
 	delete[] workspace;
 	delete[] weights;
