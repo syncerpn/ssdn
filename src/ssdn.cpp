@@ -270,7 +270,7 @@ void print_array(float* x, int n, int m, int k) {
 	for (int ni = 0; ni < n; ++ni) {
 		for (int mi = 0; mi < m; ++mi) {
 			for (int ki = 0; ki < k; ++ki) {
-				std::cout << x[ni*m*k + mi*k + ki] << " " << std::endl;
+				std::cout << x[ni*m*k + mi*k + ki] << " ";
 			}
 			std::cout << std::endl;
 		}
