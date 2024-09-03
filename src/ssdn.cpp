@@ -335,8 +335,9 @@ int run_sim_fast_approx_ma_cls(std::string model_path, float wp) {
 		float* _weight = new float[weight_size];
 		fread(_weight, sizeof(float), weight_size, f);
 		weights[i] = cuda_make_array(_weight, weight_size);
+		print_array(weights[i], n, c, k * k);
 
-		quantize_compensate_wp_gpu(weight_size, wq_step, 9, wp, true, weights[i]);
+		// quantize_compensate_wp_gpu(weight_size, wq_step, 11, wp, true, weights[i]);
 
 		delete[] _weight;
 
