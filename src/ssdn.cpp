@@ -278,6 +278,18 @@ void print_array(float* x, int n, int m, int k) {
 	}
 }
 
+void print_array_u(uint8_t* x, int n, int m, int k) {
+	for (int ni = 0; ni < n; ++ni) {
+		for (int mi = 0; mi < m; ++mi) {
+			for (int ki = 0; ki < k; ++ki) {
+				std::cout << x[ni*m*k + mi*k + ki] << " ";
+			}
+			std::cout << std::endl;
+		}
+		std::cout << std::endl;
+	}
+}
+
 
 int run_sim_fast_approx_ma_cls(std::string model_path, float wp) {
 	int _layers[95] = { 3, 16, 3, 1, 1, 16, 16, 3, 1, 1, 16, 16, 3, 1, 1, 16, 16, 3, 1, 1, 16, 16, 3, 1, 1, 16, 16, 3, 1, 1, 16, 16, 3, 1, 1, 16, 32, 3, 2, 1, 32, 32, 3, 1, 1, 32, 32, 3, 1, 1, 32, 32, 3, 1, 1, 32, 32, 3, 1, 1, 32, 32, 3, 1, 1, 32, 64, 3, 2, 1, 64, 64, 3, 1, 1, 64, 64, 3, 1, 1, 64, 64, 3, 1, 1, 64, 64, 3, 1, 1, 64, 64, 3, 1, 1};
@@ -365,7 +377,7 @@ int run_sim_fast_approx_ma_cls(std::string model_path, float wp) {
 
     load_cifar10("./data/test_batch.bin", gt_u, im_u);
 
-    print_array(im_u, 3, 32, 32);
+    print_array_u(im_u, 3, 32, 32);
 
 	// // load images
 	// float acc_mean = 0;
