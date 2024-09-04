@@ -5,6 +5,51 @@
 
 #include "ssdn.h"
 
+void conv2d_bn(float* x, int xw, int xh,
+	float* w, float* scale, float* b, int* desc,
+	float xq_step, float wq_step,
+	int& yw, int& yh, int& yn,
+	float** workspace) {
+
+	int c = desc[0];
+	int n = desc[1];
+	int k = desc[2];
+	int s = desc[3];
+	int p = desc[4];
+
+	float* x_padded = workspace[0];
+	float* x_mat = workspace[1];
+	float* xw_mat = workspace[2];
+	float* y = workspace[3];
+
+	if (xq_step > 0) {
+		quantize_gpu(xw * xh * c, xq_step, 10, false, x);
+	}
+
+	padding_gpu(x, xw, xh, c, p, x_padded);
+	int xpw = xw + 2 * p;
+	int xph = xh + 2 * p;
+
+	unrolling_gpu(x_padded, xpw, xph, c, k, s, x_mat);
+	yw = (xpw - k) / s + 1;
+	yh = (xph - k) / s + 1;
+	yn = n;
+
+	int y_size = yw * yh;
+	int f_size = k * k * c;
+
+	if (xq_step > 0) {
+		distribute_approximate_gpu(x_mat, w, yw, yh, c, k, n, xw_mat);
+		scale_gpu(y_size * f_size * n, xq_step * wq_step, xw_mat, 1);
+	} else {
+		distribute_mul_gpu(x_mat, w, yw, yh, c, k, n, xw_mat);
+	}
+
+	tile_repeat_gpu(n, 1, y_size, b, 1, y, 1);
+	accumulate_gpu(y_size * n, f_size, xw_mat, 1, y, 1);
+
+}
+
 void conv2d(float* x, int xw, int xh,
 	float* w, float* b, int* desc,
 	float xq_step, float wq_step,
@@ -290,6 +335,31 @@ void print_array_u(uint8_t* x, int n, int m, int k) {
 	}
 }
 
+float forward_cls_single(float* im, float* gt,
+	int** layers, int n_layer, float** weights, float** scales, float** biases,
+	float** wq_steps, float** xq_steps, float** workspace) {
+
+	int zw, zh, zn;
+	float* z = workspace[3];
+
+	copy_gpu(32*32*3, im, 1, z, 1);
+
+	float* x = z;
+	int xw = 32;
+	int xh = 32;
+
+	for (int li = 0; li < n_layer; ++li) {
+		std::cout << "[INFO] layer " << li;
+		conv2d_bn(x, xw, xh, weights[li], biases[li], layers[li], xq_steps[li], wq_steps[li], zw, zh, zn, workspace);
+		if (li != n_layer-1) {
+			min_gpu(zw*zh*zn, 0, z, 1);
+		}
+		x = z;
+		xw = zw;
+		xh = zh;
+		std::cout << " done" << std::endl;
+	}
+}
 
 int run_sim_fast_approx_ma_cls(std::string model_path, float wp) {
 	int _layers[95] = { 3, 16, 3, 1, 1, 16, 16, 3, 1, 1, 16, 16, 3, 1, 1, 16, 16, 3, 1, 1, 16, 16, 3, 1, 1, 16, 16, 3, 1, 1, 16, 16, 3, 1, 1, 16, 32, 3, 2, 1, 32, 32, 3, 1, 1, 32, 32, 3, 1, 1, 32, 32, 3, 1, 1, 32, 32, 3, 1, 1, 32, 32, 3, 1, 1, 32, 64, 3, 2, 1, 64, 64, 3, 1, 1, 64, 64, 3, 1, 1, 64, 64, 3, 1, 1, 64, 64, 3, 1, 1, 64, 64, 3, 1, 1};
@@ -388,6 +458,10 @@ int run_sim_fast_approx_ma_cls(std::string model_path, float wp) {
 
 	cuda_push_array(im, im_f, 10000 * 32 * 32 * 3);
 	cuda_push_array(gt, gt_f, 10000 * 1);
+
+	for (int i = 0; i < 1; ++i) {
+		float acc = forward_cls_single(im + i*32*32*3, gt + i, layers, 19, weights, scales, biases, wq_steps, xq_steps, workspace);
+	}
 
 	// // load images
 	// float acc_mean = 0;
