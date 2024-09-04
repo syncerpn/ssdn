@@ -337,7 +337,7 @@ void print_array_u(uint8_t* x, int n, int m, int k) {
 
 float forward_cls_single(float* im, float* gt,
 	int** layers, int n_layer, float** weights, float** scales, float** biases,
-	float** wq_steps, float** xq_steps, float** workspace) {
+	float* wq_steps, float* xq_steps, float** workspace) {
 
 	int zw, zh, zn;
 	float* z = workspace[3];
