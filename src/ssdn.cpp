@@ -460,7 +460,7 @@ int run_sim_fast_approx_ma_cls(std::string model_path, float wp) {
 	cuda_push_array(gt, gt_f, 10000 * 1);
 
 	for (int i = 0; i < 1; ++i) {
-		float acc = forward_cls_single(im + i*32*32*3, gt + i, layers, 19, weights, scales, biases, wq_steps, xq_steps, workspace);
+		float acc = forward_cls_single(im + i*32*32*3, gt + i, layers, 18, weights, scales, biases, wq_steps, xq_steps, workspace);
 	}
 
 	// // load images
