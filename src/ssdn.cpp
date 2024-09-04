@@ -375,9 +375,19 @@ int run_sim_fast_approx_ma_cls(std::string model_path, float wp) {
     uint8_t* im_u = (uint8_t*)malloc(10000 * 32 * 32 * 3);
 	uint8_t* gt_u = (uint8_t*)malloc(10000 * 1);
 
-    load_cifar10("./data/cifar10/test_batch.bin", gt_u, im_u);
+	float* im_f = (float*)malloc(10000 * 32 * 32 * 3 * sizeof(float));
+	float* gt_f = (float*)malloc(10000 * 1 * sizeof(float));
 
-    print_array_u(im_u, 3, 32, 32);
+    load_cifar10("./data/cifar10/test_batch.bin", gt_u, im_u);
+    for (int i = 0; i < 10000 * 32 * 32 * 3; ++i) {
+    	im_f[i] = (float)(im_u[i]) / 256.0;
+    }
+	for (int i = 0; i < 10000 * 1; ++i) {
+		gt_f[i] = (float)(gt_u[i]) / 1.0;
+	}
+
+	cuda_push_array(im, im_f, 10000 * 32 * 32 * 3);
+	cuda_push_array(gt, gt_f, 10000 * 1);
 
 	// // load images
 	// float acc_mean = 0;
