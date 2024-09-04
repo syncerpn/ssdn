@@ -350,7 +350,7 @@ float forward_cls_single(float* im, float* gt,
 
 	for (int li = 0; li < n_layer; ++li) {
 		std::cout << "[INFO] layer " << li;
-		conv2d_bn(x, xw, xh, weights[li], biases[li], layers[li], xq_steps[li], wq_steps[li], zw, zh, zn, workspace);
+		conv2d_bn(x, xw, xh, weights[li], scales[li], biases[li], layers[li], xq_steps[li], wq_steps[li], zw, zh, zn, workspace);
 		if (li != n_layer-1) {
 			min_gpu(zw*zh*zn, 0, z, 1);
 		}
@@ -374,8 +374,8 @@ int run_sim_fast_approx_ma_cls(std::string model_path, float wp) {
 		}
 	}
 
-	float wq_step = 1.0/(1<<8);
-	float xq_step = 1.0/(1<<8);
+	float wq_steps = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+	float xq_steps = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 
 	const size_t SPA_SIZE_MAX = 16*16*32*32;
 	const size_t K_MAX = 3;
