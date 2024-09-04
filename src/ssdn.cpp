@@ -443,11 +443,11 @@ int run_sim_fast_approx_ma_cls(std::string model_path, float wp) {
 	float* im = cuda_make_array(0, 10000 * 32 * 32 * 3);
 	float* gt = cuda_make_array(0, 10000 * 1);
 	
-    uint8_t* im_u = (uint8_t*)malloc(10000 * 32 * 32 * 3);
-	uint8_t* gt_u = (uint8_t*)malloc(10000 * 1);
+    uint8_t* im_u = new uint8_t[10000 * 32 * 32 * 3];
+	uint8_t* gt_u = new uint8_t[10000 * 1];
 
-	float* im_f = (float*)malloc(10000 * 32 * 32 * 3 * sizeof(float));
-	float* gt_f = (float*)malloc(10000 * 1 * sizeof(float));
+	float* im_f = new float[10000 * 32 * 32 * 3];
+	float* gt_f = new float[10000 * 1];
 
     load_cifar10("./data/cifar10/test_batch.bin", gt_u, im_u);
     for (int i = 0; i < 10000 * 32 * 32 * 3; ++i) {
@@ -528,6 +528,8 @@ int run_sim_fast_approx_ma_cls(std::string model_path, float wp) {
 	}
 	delete[] im_u;
 	delete[] gt_u;
+	delete[] im_f;
+	delete[] gt_f;
 	delete[] layers;
 	delete[] workspace;
 	delete[] weights;
