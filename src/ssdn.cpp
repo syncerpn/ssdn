@@ -374,8 +374,8 @@ int run_sim_fast_approx_ma_cls(std::string model_path, float wp) {
 		}
 	}
 
-	float wq_steps = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
-	float xq_steps = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+	float wq_steps[19] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+	float xq_steps[19] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 
 	const size_t SPA_SIZE_MAX = 16*16*32*32;
 	const size_t K_MAX = 3;
