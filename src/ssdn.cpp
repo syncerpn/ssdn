@@ -351,6 +351,7 @@ float forward_cls_single(float* im, float* gt,
 	for (int li = 0; li < n_layer; ++li) {
 		std::cout << "[INFO] layer " << li;
 		conv2d_bn(x, xw, xh, weights[li], scales[li], biases[li], layers[li], xq_steps[li], wq_steps[li], zw, zh, zn, workspace);
+		std::cout << " -> " zh << " x " << zw << " ";
 		if (li != n_layer-1) {
 			min_gpu(zw*zh*zn, 0, z, 1);
 		}
