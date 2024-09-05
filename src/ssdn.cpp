@@ -45,6 +45,9 @@ void conv2d_bn(float* x, int xw, int xh,
 		distribute_mul_gpu(x_mat, w, yw, yh, c, k, n, xw_mat);
 	}
 
+	float* xw_mat_cpu = new float[y_size * f_size];
+	cuda_pull_array(xw_mat, xw_mat_cpu, y_size * f_size);
+
 	tile_repeat_gpu(n, 1, y_size, b, 1, y, 1);
 	accumulate_gpu(y_size * n, f_size, xw_mat, 1, y, 1);
 
