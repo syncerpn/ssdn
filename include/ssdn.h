@@ -1,6 +1,6 @@
 #ifndef SSDN_API
 #define SSDN_API
-#define BLOCK 512
+#define BLOCK 1024
 extern int gpu_index;
 extern unsigned int seed;
 
@@ -12,13 +12,6 @@ extern unsigned int seed;
 #include "curand.h"
 #include "cublas_v2.h"
 #include "cudnn.h"
-
-typedef struct {
-    int w;
-    int h;
-    int c;
-    float *data;
-} Image;
 
 extern "C" {
 
@@ -35,6 +28,9 @@ void axpy_gpu(int N, float ALPHA, float *X, int INCX, float *Y, int INCY);
 void mul_gpu(int N, float *X, int INCX, float *Y, int INCY);
 void copy_gpu(int N, float *X, int INCX, float *Y, int INCY);
 
+void broadcast_mul_gpu(int N, int s, float *X, float *Z, float *Y);
+void broadcast_add_gpu(int N, int s, float *X, float *Z, float *Y);
+
 void accumulate_gpu(int N, int K, float *X, int INCX, float *Y, int INCY);
 void tile_repeat_gpu(int N, int K, int M, float *X, int INCX, float *Y, int INCY);
 
@@ -47,13 +43,28 @@ void max_gpu(int N, float MAX, float *X, int INCX=1, float *Y=0, int INCY=1);
 void padding_gpu(float* X, int w, int h, int c, int p, float* Y);
 void unrolling_gpu(float* X, int w, int h, int c, int k, int s, float* Y);
 void flatten_arrange_gpu(float* X, float* Z, int w, int h, int s, float* Y);
+void pixel_shuffle_gpu(float* X, int w, int h, int c, int s, float* Y);
 void distribute_mul_gpu(float* X, float* Z, int w, int h, int c, int k, int n, float* Y);
 
 void quantize_gpu(int N, float step, int nbit, bool sign, float *X, int INCX=1, float *Y=0, int INCY=1);
+void distribute_approximate_one_side_gpu(float* X, float* Z, int w, int h, int c, int k, int n, float* Y);
+void distribute_approximate_one_side_iterative_gpu(float* X, float* Z, int w, int h, int c, int k, int n, float* Y, int iter);
+void distribute_approximate_signedap_gpu(float* X, float* Z, int w, int h, int c, int k, int n, float* Y);
+void distribute_approximate_signedap_iterative_gpu(float* X, float* Z, int w, int h, int c, int k, int n, float* Y, int iter);
 void distribute_approximate_gpu(float* X, float* Z, int w, int h, int c, int k, int n, float* Y);
+void distribute_approximate_iterative_gpu(float* X, float* Z, int w, int h, int c, int k, int n, float* Y, int iter);
+void distribute_approximate_ilm_gpu(float* X, float* Z, int w, int h, int c, int k, int n, float* Y);
+void distribute_approximate_ilm_iterative_gpu(float* X, float* Z, int w, int h, int c, int k, int n, float* Y, int iter);
 void compensate_wp_gpu(int N, float p, float *X, int INCX=1, float *Y=0, int INCY=1);
 void quantize_compensate_wp_gpu(int N, float step, int nbit, float comp_factor, bool sign, float *X, int INCX=1, float *Y=0, int INCY=1);
 void compensate_log_gpu(int N, float p, float m, float *X, int INCX=1, float *Y=0, int INCY=1);
+
+void conv2d_chunk_mul_gpu(float* X, float* W, int w, int h, int c, int k, float* Y, int iter=0);
+void conv2d_chunk_approximate_ilm_iterative_gpu(float* X, float* W, int w, int h, int c, int k, float* Y, int iter);
+void conv2d_chunk_approximate_iterative_gpu(float* X, float* W, int w, int h, int c, int k, float* Y, int iter);
+void conv2d_chunk_approximate_signedap_iterative_gpu(float* X, float* W, int w, int h, int c, int k, float* Y, int iter);
+void conv2d_chunk_approximate_one_side_iterative_gpu(float* X, float* W, int w, int h, int c, int k, float* Y, int iter);
+void conv2d_chunk_approximate_lsbskip_iterative_gpu(float* X, float* W, int w, int h, int c, int k, float* Y, int iter);
 
 // blas.cpp
 void fill_cpu(int N, float ALPHA, float *X, int INCX);

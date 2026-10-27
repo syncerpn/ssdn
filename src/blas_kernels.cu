@@ -39,6 +39,26 @@ void mul_gpu(int N, float *X, int INCX, float *Y, int INCY) {
     check_error(cudaPeekAtLastError());
 }
 
+__global__ void broadcast_mul_kernel(int N, int s, float *X, float *Z, float *Y) {
+    int i = (blockIdx.x + blockIdx.y*gridDim.x) * blockDim.x + threadIdx.x;
+    if (i < N * s) Y[i] = X[i] * Z[i / s];
+}
+
+void broadcast_mul_gpu(int N, int s, float *X, float *Z, float *Y) {
+    broadcast_mul_kernel<<<cuda_gridsize(N * s), BLOCK>>>(N, s, X, Z, Y);
+    check_error(cudaPeekAtLastError());
+}
+
+__global__ void broadcast_add_kernel(int N, int s, float *X, float *Z, float *Y) {
+    int i = (blockIdx.x + blockIdx.y*gridDim.x) * blockDim.x + threadIdx.x;
+    if (i < N * s) Y[i] = X[i] + Z[i / s];
+}
+
+void broadcast_add_gpu(int N, int s, float *X, float *Z, float *Y) {
+    broadcast_add_kernel<<<cuda_gridsize(N * s), BLOCK>>>(N, s, X, Z, Y);
+    check_error(cudaPeekAtLastError());
+}
+
 __global__ void copy_kernel(int N, float *X, int INCX, float *Y, int INCY) {
     int i = (blockIdx.x + blockIdx.y*gridDim.x) * blockDim.x + threadIdx.x;
     if (i < N) Y[i*INCY] = X[i*INCX];
@@ -213,6 +233,26 @@ void flatten_arrange_gpu(float* X, float* Z, int w, int h, int s, float* Y) {
     check_error(cudaPeekAtLastError());
 }
 
+__global__ void pixel_shuffle_kernel(float* X, int w, int h, int c, int s, float* Y) {
+    int index = (blockIdx.x + blockIdx.y*gridDim.x) * blockDim.x + threadIdx.x;
+    if (index >= w*h*s*s*c) return;
+    int sj = index % s;
+    index /= s;
+    int si = index % s;
+    index /= s;
+    int wi = index % w;
+    index /= w;
+    int hi = index % h;
+    index /= h;
+    int ci = index;
+    Y[ci*s*s*h*w+(hi*s+si)*w*s+wi*s+sj] = X[ci*h*w*s*s+(si*s+sj)*h*w+hi*w+wi];
+}
+
+void pixel_shuffle_gpu(float* X, int w, int h, int c, int s, float* Y) {
+    pixel_shuffle_kernel<<<cuda_gridsize(w*h*s*s*c), BLOCK>>>(X, w, h, c, s, Y);
+    check_error(cudaPeekAtLastError());
+}
+
 __global__ void distribute_mul_kernel(float* X, float* Z, int w, int h, int c, int k, int n, float* Y) {
     int index = (blockIdx.x + blockIdx.y*gridDim.x) * blockDim.x + threadIdx.x;
     if (index >= w*h*c*k*k*n) return;
@@ -248,6 +288,7 @@ void quantize_gpu(int N, float step, int nbit, bool sign, float *X, int INCX, fl
     check_error(cudaPeekAtLastError());
 }
 
+// 241121: now is the original mitchell's algorithm
 __device__ void lead_one_encode(int x, int &k, int &p) {
     if (x == 0 || x == 1) {
         k = 0;
@@ -261,6 +302,185 @@ __device__ void lead_one_encode(int x, int &k, int &p) {
     }
     p = x - (1 << k);
 }
+
+// this is the key difference, where we no longer can make sure the error is min of the two possible errors
+__device__ int approximate_one_side(int i, int j) {
+    if ((i == 0) || (j == 0)) return 0;
+
+    int sign_i = i > 0 ? 1 : -1;
+    int sign_j = j > 0 ? 1 : -1;
+
+    i = sign_i * i;
+    j = sign_j * j;
+
+    int ki, pi, kj, pj;
+    lead_one_encode(i, ki, pi);
+    lead_one_encode(j, kj, pj);
+
+    int e = pi * pj;
+    return sign_i * sign_j * (i * j - e);
+}
+
+__global__ void distribute_approximate_one_side_kernel(float* X, float* Z, int w, int h, int c, int k, int n, float* Y) {
+    int index = (blockIdx.x + blockIdx.y*gridDim.x) * blockDim.x + threadIdx.x;
+    if (index >= w*h*c*k*k*n) return;
+    int  j = index % (c*k*k);
+    index /= (c*k*k);
+    int  i = index % (h*w);
+    index /= (h*w);
+    int ni = index;
+
+    Y[ni*(h*w*k*k*c)+i*(k*k*c)+j] = (float)approximate_one_side((int)(X[i*(k*k*c)+j]), (int)(Z[ni*(k*k*c)+j]));
+}
+
+void distribute_approximate_one_side_gpu(float* X, float* Z, int w, int h, int c, int k, int n, float* Y) {
+    distribute_approximate_one_side_kernel<<<cuda_gridsize(w*h*c*k*k*n), BLOCK>>>(X, Z, w, h, c, k, n, Y);
+    check_error(cudaPeekAtLastError());
+}
+
+__device__ int approximate_one_side_iterative(int i, int j, int iter) {
+    if ((i == 0) || (j == 0)) return 0;
+
+    int sign_i = i > 0 ? 1 : -1;
+    int sign_j = j > 0 ? 1 : -1;
+
+    i = sign_i * i;
+    j = sign_j * j;
+
+    int ii = i;
+    int jj = j;
+
+    int ki, pi, kj, pj;
+
+    while (iter > 0) {
+        lead_one_encode(ii, ki, pi);
+        lead_one_encode(jj, kj, pj);
+
+        ii = pi;
+        jj = pj;
+
+        iter -= 1;
+    }
+
+    int e = pi * pj;
+    return sign_i * sign_j * (i * j - e);
+}
+
+__global__ void distribute_approximate_one_side_iterative_kernel(float* X, float* Z, int w, int h, int c, int k, int n, float* Y, int iter) {
+    int index = (blockIdx.x + blockIdx.y*gridDim.x) * blockDim.x + threadIdx.x;
+    if (index >= w*h*c*k*k*n) return;
+    int  j = index % (c*k*k);
+    index /= (c*k*k);
+    int  i = index % (h*w);
+    index /= (h*w);
+    int ni = index;
+
+    Y[ni*(h*w*k*k*c)+i*(k*k*c)+j] = (float)approximate_one_side_iterative((int)(X[i*(k*k*c)+j]), (int)(Z[ni*(k*k*c)+j]), iter);
+}
+
+void distribute_approximate_one_side_iterative_gpu(float* X, float* Z, int w, int h, int c, int k, int n, float* Y, int iter) {
+    distribute_approximate_one_side_iterative_kernel<<<cuda_gridsize(w*h*c*k*k*n), BLOCK>>>(X, Z, w, h, c, k, n, Y, iter);
+    check_error(cudaPeekAtLastError());
+}
+//241121_end
+
+// 241121: this is actually a customized version of mitchell's original algorithm
+// with also a modified circuit
+// and it works so well
+// we will reuse the lead_one_encode function as well
+// __device__ void lead_one_encode(int x, int &k, int &p) {}
+
+__device__ int approximate_signedap(int i, int j) {
+    if ((i == 0) || (j == 0)) return 0;
+
+    int sign_i = i > 0 ? 1 : -1;
+    int sign_j = j > 0 ? 1 : -1;
+
+    i = sign_i * i;
+    j = sign_j * j;
+
+    int ki, pi, kj, pj;
+    lead_one_encode(i, ki, pi);
+    lead_one_encode(j, kj, pj);
+
+    int p1 = pi * pj;
+    int p2 = ((1 << ki) - pi) * ((1 << kj) - pj);
+    int e = p1 < p2 ? p1 : p2;
+    if (sign_i * sign_j == -1) return -(i * j - e) - 1;
+    return sign_i * sign_j * (i * j - e);
+}
+
+__global__ void distribute_approximate_signedap_kernel(float* X, float* Z, int w, int h, int c, int k, int n, float* Y) {
+    int index = (blockIdx.x + blockIdx.y*gridDim.x) * blockDim.x + threadIdx.x;
+    if (index >= w*h*c*k*k*n) return;
+    int  j = index % (c*k*k);
+    index /= (c*k*k);
+    int  i = index % (h*w);
+    index /= (h*w);
+    int ni = index;
+
+    Y[ni*(h*w*k*k*c)+i*(k*k*c)+j] = (float)approximate_signedap((int)(X[i*(k*k*c)+j]), (int)(Z[ni*(k*k*c)+j]));
+}
+
+void distribute_approximate_signedap_gpu(float* X, float* Z, int w, int h, int c, int k, int n, float* Y) {
+    distribute_approximate_signedap_kernel<<<cuda_gridsize(w*h*c*k*k*n), BLOCK>>>(X, Z, w, h, c, k, n, Y);
+    check_error(cudaPeekAtLastError());
+}
+
+__device__ int approximate_signedap_iterative(int i, int j, int iter) {
+    if ((i == 0) || (j == 0)) return 0;
+
+    int sign_i = i > 0 ? 1 : -1;
+    int sign_j = j > 0 ? 1 : -1;
+
+    i = sign_i * i;
+    j = sign_j * j;
+
+    int ii = i;
+    int jj = j;
+
+    int ki, pi, kj, pj;
+
+    while (iter > 0) {
+        lead_one_encode(ii, ki, pi);
+        lead_one_encode(jj, kj, pj);
+
+        ii = pi;
+        jj = pj;
+
+        iter -= 1;
+    }
+
+    int p1 = pi * pj;
+    int p2 = ((1 << ki) - pi) * ((1 << kj) - pj);
+    int e = p1 < p2 ? p1 : p2;
+    if ((sign_i * sign_j) == -1) return -(i * j - e) - 1;
+    return sign_i * sign_j * (i * j - e);
+}
+
+__global__ void distribute_approximate_signedap_iterative_kernel(float* X, float* Z, int w, int h, int c, int k, int n, float* Y, int iter) {
+    int index = (blockIdx.x + blockIdx.y*gridDim.x) * blockDim.x + threadIdx.x;
+    if (index >= w*h*c*k*k*n) return;
+    int  j = index % (c*k*k);
+    index /= (c*k*k);
+    int  i = index % (h*w);
+    index /= (h*w);
+    int ni = index;
+
+    Y[ni*(h*w*k*k*c)+i*(k*k*c)+j] = (float)approximate_signedap_iterative((int)(X[i*(k*k*c)+j]), (int)(Z[ni*(k*k*c)+j]), iter);
+}
+
+void distribute_approximate_signedap_iterative_gpu(float* X, float* Z, int w, int h, int c, int k, int n, float* Y, int iter) {
+    distribute_approximate_signedap_iterative_kernel<<<cuda_gridsize(w*h*c*k*k*n), BLOCK>>>(X, Z, w, h, c, k, n, Y, iter);
+    check_error(cudaPeekAtLastError());
+}
+//241121_end
+
+// 241121: this is actually a customized version of mitchell's original algorithm
+// with also a modified circuit
+// and it works so well
+// we will reuse the lead_one_encode function as well
+// __device__ void lead_one_encode(int x, int &k, int &p) {}
 
 __device__ int approximate(int i, int j) {
     if ((i == 0) || (j == 0)) return 0;
@@ -279,7 +499,6 @@ __device__ int approximate(int i, int j) {
     int p2 = ((1 << ki) - pi) * ((1 << kj) - pj);
     int e = p1 < p2 ? p1 : p2;
     return sign_i * sign_j * (i * j - e);
-
 }
 
 __global__ void distribute_approximate_kernel(float* X, float* Z, int w, int h, int c, int k, int n, float* Y) {
@@ -298,6 +517,157 @@ void distribute_approximate_gpu(float* X, float* Z, int w, int h, int c, int k, 
     distribute_approximate_kernel<<<cuda_gridsize(w*h*c*k*k*n), BLOCK>>>(X, Z, w, h, c, k, n, Y);
     check_error(cudaPeekAtLastError());
 }
+
+__device__ int approximate_iterative(int i, int j, int iter) {
+    if ((i == 0) || (j == 0)) return 0;
+
+    int sign_i = i > 0 ? 1 : -1;
+    int sign_j = j > 0 ? 1 : -1;
+
+    i = sign_i * i;
+    j = sign_j * j;
+
+    int ii = i;
+    int jj = j;
+
+    int ki, pi, kj, pj;
+
+    while (iter > 0) {
+        lead_one_encode(ii, ki, pi);
+        lead_one_encode(jj, kj, pj);
+
+        ii = pi;
+        jj = pj;
+
+        iter -= 1;
+    }
+
+    int p1 = pi * pj;
+    int p2 = ((1 << ki) - pi) * ((1 << kj) - pj);
+    int e = p1 < p2 ? p1 : p2;
+    return sign_i * sign_j * (i * j - e);
+}
+
+__global__ void distribute_approximate_iterative_kernel(float* X, float* Z, int w, int h, int c, int k, int n, float* Y, int iter) {
+    int index = (blockIdx.x + blockIdx.y*gridDim.x) * blockDim.x + threadIdx.x;
+    if (index >= w*h*c*k*k*n) return;
+    int  j = index % (c*k*k);
+    index /= (c*k*k);
+    int  i = index % (h*w);
+    index /= (h*w);
+    int ni = index;
+
+    Y[ni*(h*w*k*k*c)+i*(k*k*c)+j] = (float)approximate_iterative((int)(X[i*(k*k*c)+j]), (int)(Z[ni*(k*k*c)+j]), iter);
+}
+
+void distribute_approximate_iterative_gpu(float* X, float* Z, int w, int h, int c, int k, int n, float* Y, int iter) {
+    distribute_approximate_iterative_kernel<<<cuda_gridsize(w*h*c*k*k*n), BLOCK>>>(X, Z, w, h, c, k, n, Y, iter);
+    check_error(cudaPeekAtLastError());
+}
+//241121_end
+
+// 241102
+// improved log multiplier approximation style
+// implement this to simulate accuracy/psnr of networks
+__device__ void nearest_one_encode(int x, int &k, int &p) {
+    if (x == 0 || x == 1) {
+        k = 0;
+        p = 0;
+    }
+    k = 0;
+    int xx = x;
+    while (xx > 1) {
+        xx = xx >> 1;
+        k += 1;
+    }
+    p = x - (1 << k);
+    int p_over = (1 << (k+1)) - x;
+    if (p_over < p) {
+        p = -p_over; // must be negative
+        k += 1;
+    }
+}
+
+__device__ int approximate_ilm(int i, int j) {
+    if ((i == 0) || (j == 0)) return 0;
+
+    int sign_i = i > 0 ? 1 : -1;
+    int sign_j = j > 0 ? 1 : -1;
+
+    i = sign_i * i;
+    j = sign_j * j;
+
+    int ki, pi, kj, pj;
+    nearest_one_encode(i, ki, pi);
+    nearest_one_encode(j, kj, pj);
+
+    int m = (1 << (ki + kj)) + (pi << kj) + (pj << ki);
+    return sign_i * sign_j * m;
+}
+
+__global__ void distribute_approximate_ilm_kernel(float* X, float* Z, int w, int h, int c, int k, int n, float* Y) {
+    int index = (blockIdx.x + blockIdx.y*gridDim.x) * blockDim.x + threadIdx.x;
+    if (index >= w*h*c*k*k*n) return;
+    int  j = index % (c*k*k);
+    index /= (c*k*k);
+    int  i = index % (h*w);
+    index /= (h*w);
+    int ni = index;
+
+    Y[ni*(h*w*k*k*c)+i*(k*k*c)+j] = (float)approximate_ilm((int)(X[i*(k*k*c)+j]), (int)(Z[ni*(k*k*c)+j]));
+}
+
+void distribute_approximate_ilm_gpu(float* X, float* Z, int w, int h, int c, int k, int n, float* Y) {
+    distribute_approximate_ilm_kernel<<<cuda_gridsize(w*h*c*k*k*n), BLOCK>>>(X, Z, w, h, c, k, n, Y);
+    check_error(cudaPeekAtLastError());
+}
+
+__device__ int approximate_ilm_iterative(int i, int j, int iter) {
+    int m = 0;
+    int ii = i;
+    int jj = j;
+
+    while (iter > 0) {
+        if ((ii == 0) || (jj == 0)) break;
+
+        int sign_i = ii > 0 ? 1 : -1;
+        int sign_j = jj > 0 ? 1 : -1;
+
+        ii = sign_i * ii;
+        jj = sign_j * jj;
+
+        int ki, kj, pi, pj;
+
+        nearest_one_encode(ii, ki, pi);
+        nearest_one_encode(jj, kj, pj);
+
+        m += sign_i * sign_j * ((1 << (ki + kj)) + (pi << kj) + (pj << ki));
+
+        ii = sign_i * pi;
+        jj = sign_j * pj;
+
+        iter -= 1;
+    }
+    return m;
+}
+
+__global__ void distribute_approximate_ilm_iterative_kernel(float* X, float* Z, int w, int h, int c, int k, int n, float* Y, int iter) {
+    int index = (blockIdx.x + blockIdx.y*gridDim.x) * blockDim.x + threadIdx.x;
+    if (index >= w*h*c*k*k*n) return;
+    int  j = index % (c*k*k);
+    index /= (c*k*k);
+    int  i = index % (h*w);
+    index /= (h*w);
+    int ni = index;
+
+    Y[ni*(h*w*k*k*c)+i*(k*k*c)+j] = (float)approximate_ilm_iterative((int)(X[i*(k*k*c)+j]), (int)(Z[ni*(k*k*c)+j]), iter);
+}
+
+void distribute_approximate_ilm_iterative_gpu(float* X, float* Z, int w, int h, int c, int k, int n, float* Y, int iter) {
+    distribute_approximate_ilm_iterative_kernel<<<cuda_gridsize(w*h*c*k*k*n), BLOCK>>>(X, Z, w, h, c, k, n, Y, iter);
+    check_error(cudaPeekAtLastError());
+}
+// 241102_end
 
 __global__ void compensate_wp_kernel(int N, float p, float *X, int INCX, float *Y, int INCY) {
     int i = (blockIdx.x + blockIdx.y*gridDim.x) * blockDim.x + threadIdx.x;
@@ -361,5 +731,222 @@ void compensate_log_gpu(int N, float p, float m, float *X, int INCX, float *Y, i
         INCY = INCX;
     }
     compensate_log_kernel<<<cuda_gridsize(N), BLOCK>>>(N, p, m, X, INCX, Y, INCY);
+    check_error(cudaPeekAtLastError());
+}
+
+// specifically for non-dimensional change conv2d (3,1,1) or (1,1,0) for example
+__global__ void conv2d_chunk_approximate_ilm_iterative_kernel(float* X, float* W, int w, int h, int c, int k, float* Y, int iter) {
+    int index = (blockIdx.x + blockIdx.y*gridDim.x) * blockDim.x + threadIdx.x;
+    if (index >= h*w*c) return;
+    int ci = index % c;
+    index /= c;
+    int wi = index % w;
+    index /= w;
+    int hi = index;
+
+    int ki, kj, xhi, xwi;
+
+    Y[hi*w*c + wi*c + ci] = 0;
+
+    for (ki = 0; ki < k; ++ki) {
+        for (kj = 0; kj < k; ++kj) {
+            xhi = hi + ki - k / 2;
+            xwi = wi + kj - k / 2;
+            if (0 <= xhi && xhi < h && 0 <= xwi && xwi < w) {
+                Y[hi*w*c + wi*c + ci] += (float)approximate_ilm_iterative((int)(X[ci*h*w+xhi*w+xwi]), (int)(W[ci*k*k+ki*k+kj]), iter);
+            }
+        }
+    }
+}
+
+void conv2d_chunk_approximate_ilm_iterative_gpu(float* X, float* W, int w, int h, int c, int k, float* Y, int iter) {
+    conv2d_chunk_approximate_ilm_iterative_kernel<<<cuda_gridsize(h*w*c), BLOCK>>>(X, W, w, h, c, k, Y, iter);
+    check_error(cudaPeekAtLastError());
+}
+
+// specifically for non-dimensional change conv2d (3,1,1) or (1,1,0) for example
+__global__ void conv2d_chunk_approximate_iterative_kernel(float* X, float* W, int w, int h, int c, int k, float* Y, int iter) {
+    int index = (blockIdx.x + blockIdx.y*gridDim.x) * blockDim.x + threadIdx.x;
+    if (index >= h*w*c) return;
+    int ci = index % c;
+    index /= c;
+    int wi = index % w;
+    index /= w;
+    int hi = index;
+
+    int ki, kj, xhi, xwi;
+
+    Y[hi*w*c + wi*c + ci] = 0;
+
+    for (ki = 0; ki < k; ++ki) {
+        for (kj = 0; kj < k; ++kj) {
+            xhi = hi + ki - k / 2;
+            xwi = wi + kj - k / 2;
+            if (0 <= xhi && xhi < h && 0 <= xwi && xwi < w) {
+                Y[hi*w*c + wi*c + ci] += (float)approximate_iterative((int)(X[ci*h*w+xhi*w+xwi]), (int)(W[ci*k*k+ki*k+kj]), iter);
+            }
+        }
+    }
+}
+
+void conv2d_chunk_approximate_iterative_gpu(float* X, float* W, int w, int h, int c, int k, float* Y, int iter) {
+    conv2d_chunk_approximate_iterative_kernel<<<cuda_gridsize(h*w*c), BLOCK>>>(X, W, w, h, c, k, Y, iter);
+    check_error(cudaPeekAtLastError());
+}
+
+// specifically for non-dimensional change conv2d (3,1,1) or (1,1,0) for example
+__global__ void conv2d_chunk_approximate_signedap_iterative_kernel(float* X, float* W, int w, int h, int c, int k, float* Y, int iter) {
+    int index = (blockIdx.x + blockIdx.y*gridDim.x) * blockDim.x + threadIdx.x;
+    if (index >= h*w*c) return;
+    int ci = index % c;
+    index /= c;
+    int wi = index % w;
+    index /= w;
+    int hi = index;
+
+    int ki, kj, xhi, xwi;
+
+    Y[hi*w*c + wi*c + ci] = 0;
+
+    for (ki = 0; ki < k; ++ki) {
+        for (kj = 0; kj < k; ++kj) {
+            xhi = hi + ki - k / 2;
+            xwi = wi + kj - k / 2;
+            if (0 <= xhi && xhi < h && 0 <= xwi && xwi < w) {
+                Y[hi*w*c + wi*c + ci] += (float)approximate_signedap_iterative((int)(X[ci*h*w+xhi*w+xwi]), (int)(W[ci*k*k+ki*k+kj]), iter);
+            }
+        }
+    }
+}
+
+void conv2d_chunk_approximate_signedap_iterative_gpu(float* X, float* W, int w, int h, int c, int k, float* Y, int iter) {
+    conv2d_chunk_approximate_signedap_iterative_kernel<<<cuda_gridsize(h*w*c), BLOCK>>>(X, W, w, h, c, k, Y, iter);
+    check_error(cudaPeekAtLastError());
+}
+
+// specifically for non-dimensional change conv2d (3,1,1) or (1,1,0) for example
+__global__ void conv2d_chunk_approximate_one_side_iterative_kernel(float* X, float* W, int w, int h, int c, int k, float* Y, int iter) {
+    int index = (blockIdx.x + blockIdx.y*gridDim.x) * blockDim.x + threadIdx.x;
+    if (index >= h*w*c) return;
+    int ci = index % c;
+    index /= c;
+    int wi = index % w;
+    index /= w;
+    int hi = index;
+
+    int ki, kj, xhi, xwi;
+
+    Y[hi*w*c + wi*c + ci] = 0;
+
+    for (ki = 0; ki < k; ++ki) {
+        for (kj = 0; kj < k; ++kj) {
+            xhi = hi + ki - k / 2;
+            xwi = wi + kj - k / 2;
+            if (0 <= xhi && xhi < h && 0 <= xwi && xwi < w) {
+                Y[hi*w*c + wi*c + ci] += (float)approximate_one_side_iterative((int)(X[ci*h*w+xhi*w+xwi]), (int)(W[ci*k*k+ki*k+kj]), iter);
+            }
+        }
+    }
+}
+
+void conv2d_chunk_approximate_one_side_iterative_gpu(float* X, float* W, int w, int h, int c, int k, float* Y, int iter) {
+    conv2d_chunk_approximate_one_side_iterative_kernel<<<cuda_gridsize(h*w*c), BLOCK>>>(X, W, w, h, c, k, Y, iter);
+    check_error(cudaPeekAtLastError());
+}
+
+// specifically for non-dimensional change conv2d (3,1,1) or (1,1,0) for example
+__global__ void conv2d_chunk_mul_kernel(float* X, float* W, int w, int h, int c, int k, float* Y) {
+    int index = (blockIdx.x + blockIdx.y*gridDim.x) * blockDim.x + threadIdx.x;
+    if (index >= h*w*c) return;
+    int ci = index % c;
+    index /= c;
+    int wi = index % w;
+    index /= w;
+    int hi = index;
+
+    int ki, kj, xhi, xwi;
+
+    Y[hi*w*c + wi*c + ci] = 0;
+
+    for (ki = 0; ki < k; ++ki) {
+        for (kj = 0; kj < k; ++kj) {
+            xhi = hi + ki - k / 2;
+            xwi = wi + kj - k / 2;
+            if (0 <= xhi && xhi < h && 0 <= xwi && xwi < w) {
+                Y[hi*w*c + wi*c + ci] += X[ci*h*w+xhi*w+xwi] * W[ci*k*k+ki*k+kj];
+            }
+        }
+    }
+}
+
+void conv2d_chunk_mul_gpu(float* X, float* W, int w, int h, int c, int k, float* Y, int iter) {
+    conv2d_chunk_mul_kernel<<<cuda_gridsize(h*w*c), BLOCK>>>(X, W, w, h, c, k, Y);
+    check_error(cudaPeekAtLastError());
+}
+
+__device__ int approximate_lsbskip_iterative(int i, int j, int iter) {
+    if ((i == 0) || (j == 0)) return 0;
+
+    int m = 0;
+    int sm = 1;
+    int l = 0;
+    int sl = 1;
+    bool found = false;
+
+    if ((-2 <= j) && (j <= 2)) {
+        sl = j > 0 ? 1 : -1;
+        l = j * sl;
+    } else {
+        for (sm = 1; sm > -2; sm -= 2) {
+            for (m = 4; m < 2048; m *= 2) {
+                for (sl = 1; sl > -2; sl -= 2) {
+                    for (l = 0; l < 3; ++l) {
+                        if (j == (sm * m + sl * l)) {
+                            found = true;
+                            break;
+                        }
+                    }
+                    if (found) break;
+                }
+                if (found) break;
+            }
+            if (found) break;
+        }
+    }
+
+    int isl = i * l * sl;
+    int ism = i * m * sm;
+
+    return (((ism >> iter) + (isl >> iter)) << iter) | (isl & ((1 << iter) - 1));
+
+}
+
+// specifically for non-dimensional change conv2d (3,1,1) or (1,1,0) for example
+__global__ void conv2d_chunk_approximate_lsbskip_iterative_kernel(float* X, float* W, int w, int h, int c, int k, float* Y, int iter) {
+    int index = (blockIdx.x + blockIdx.y*gridDim.x) * blockDim.x + threadIdx.x;
+    if (index >= h*w*c) return;
+    int ci = index % c;
+    index /= c;
+    int wi = index % w;
+    index /= w;
+    int hi = index;
+
+    int ki, kj, xhi, xwi;
+
+    Y[hi*w*c + wi*c + ci] = 0;
+
+    for (ki = 0; ki < k; ++ki) {
+        for (kj = 0; kj < k; ++kj) {
+            xhi = hi + ki - k / 2;
+            xwi = wi + kj - k / 2;
+            if (0 <= xhi && xhi < h && 0 <= xwi && xwi < w) {
+                Y[hi*w*c + wi*c + ci] += (float)approximate_lsbskip_iterative((int)(X[ci*h*w+xhi*w+xwi]), (int)(W[ci*k*k+ki*k+kj]), iter);
+            }
+        }
+    }
+}
+
+void conv2d_chunk_approximate_lsbskip_iterative_gpu(float* X, float* W, int w, int h, int c, int k, float* Y, int iter) {
+    conv2d_chunk_approximate_lsbskip_iterative_kernel<<<cuda_gridsize(h*w*c), BLOCK>>>(X, W, w, h, c, k, Y, iter);
     check_error(cudaPeekAtLastError());
 }
